@@ -910,4 +910,4 @@ export function createLogger(config: LoggerConfig = {}): Logger {
 /**
  * 默认日志器实例
  */
-export const logger = createLogger();
+export const logger: Logger = createLogger();
