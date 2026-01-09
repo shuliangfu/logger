@@ -1,8 +1,13 @@
 # @dreamer/logger
 
-一个用于 Deno 的日志工具库，提供多级别日志、格式化、轮转等功能。
+> 一个兼容 Deno 和 Bun 的日志工具库，提供多级别日志、格式化、轮转等功能
 
-## 功能
+[![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+---
+
+## 🎯 功能
 
 日志工具库，用于应用日志记录、调试和监控。
 
@@ -43,10 +48,6 @@
 - 日志收集和分析（ELK、Loki 等）
 - 后台服务日志（自动禁用颜色，适合文件输出）
 
-## 优先级
-
-⭐⭐⭐⭐⭐
-
 ## 安装
 
 ```bash
@@ -55,12 +56,14 @@ deno add jsr:@dreamer/logger
 
 ## 环境兼容性
 
-- **Deno 版本**：要求 Deno 2.5 或更高版本
-- **服务端**：✅ 支持（Deno 运行时，自动检测 TTY 环境，后台运行时自动禁用颜色，支持文件输出）
+- **运行时要求**：Deno 2.5+ 或 Bun 1.0+
+- **服务端**：✅ 支持（兼容 Deno 和 Bun 运行时，自动检测 TTY 环境，后台运行时自动禁用颜色，支持文件输出）
 - **客户端**：❌ 不支持（浏览器环境无法使用文件输出功能，如需客户端日志，需要另外实现客户端专用库，使用 console API 或远程日志服务）
 - **依赖**：无外部依赖（纯 TypeScript 实现）
 
-## 示例用法
+---
+
+## 🚀 快速开始
 
 ```typescript
 import { Logger, createLogger } from "jsr:@dreamer/logger";
@@ -229,61 +232,9 @@ const logger2 = createLogger({
 });
 ```
 
-### 完整示例
+---
 
-```typescript
-import { createLogger } from "jsr:@dreamer/logger";
-
-// 创建生产环境日志器
-const logger = createLogger({
-  level: "info",
-  format: "json", // 结构化日志，适合日志收集系统
-  output: {
-    console: true, // 控制台输出（自动检测颜色）
-    file: {
-      path: "./logs/app.log",
-      rotate: true,
-      strategy: "size-time",
-      maxSize: 10 * 1024 * 1024, // 10MB
-      rotateInterval: 24 * 60 * 60 * 1000, // 24 小时
-      maxFiles: 7,
-      compress: true,
-    },
-  },
-  filter: {
-    excludeTags: ["debug"], // 排除调试日志
-  },
-  sampling: {
-    rate: 0.1, // 采样 10% 的日志
-    levels: ["debug", "info"],
-  },
-});
-
-// 添加上下文
-logger.setContext({
-  requestId: "req-123",
-  userId: "user-456",
-});
-
-// 记录日志
-logger.info("用户登录", { username: "alice" });
-logger.error("登录失败", { username: "bob" }, new Error("密码错误"));
-
-// 性能监控
-const perfId = logger.startPerformance("数据库查询");
-await queryDatabase();
-logger.endPerformance(perfId, "info");
-
-// 创建子日志器（继承配置）
-const apiLogger = logger.child({
-  tags: ["api"],
-  context: { service: "api" },
-});
-
-apiLogger.info("API 请求", { path: "/users" });
-```
-
-## API 文档
+## 📚 API 文档
 
 ### Logger 类
 
@@ -382,3 +333,33 @@ interface LogSamplingConfig {
   levels?: LogLevel[];
 }
 ```
+
+---
+
+## 📝 备注
+
+- **服务端专用**：日志库主要用于服务端，客户端不支持文件输出功能
+- **统一接口**：提供统一的日志 API 接口，降低学习成本
+- **自动检测环境**：自动检测 TTY 环境，后台运行时自动禁用颜色
+- **类型安全**：完整的 TypeScript 类型支持
+- **无外部依赖**：纯 TypeScript 实现
+
+---
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 📄 许可证
+
+MIT License - 详见 [LICENSE.md](./LICENSE.md)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Dreamer Team**
+
+</div>
