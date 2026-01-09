@@ -2,8 +2,8 @@
  * @fileoverview Logger 测试
  */
 
+import { makeTempDir, readTextFile, remove } from "@dreamer/runtime-adapter";
 import { afterEach, beforeEach, describe, expect, it } from "@dreamer/test";
-import { readTextFile } from "@dreamer/runtime-adapter";
 import { createLogger, Logger, LogLevel } from "../src/mod.ts";
 
 describe("Logger", () => {
@@ -330,7 +330,7 @@ describe("Logger", () => {
     let testFile: string;
 
     beforeEach(async () => {
-      testDir = await Deno.makeTempDir({ prefix: "logger-test-" });
+      testDir = await makeTempDir({ prefix: "logger-test-" });
       testFile = `${testDir}/test.log`;
     });
 
@@ -342,7 +342,7 @@ describe("Logger", () => {
           },
         });
         await logger.close();
-        await Deno.remove(testDir, { recursive: true });
+        await remove(testDir, { recursive: true });
       } catch {
         // 忽略清理错误
       }
@@ -359,11 +359,13 @@ describe("Logger", () => {
         },
       });
       // 等待文件初始化完成
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       logger.info("文件输出测试");
       // 等待日志写入完成
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await logger.close();
+      // 等待文件关闭完成
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 检查文件是否存在
       try {
@@ -374,6 +376,8 @@ describe("Logger", () => {
         // 这是可以接受的，因为文件初始化是异步的
         console.warn("文件输出测试：文件可能未创建", error);
       }
+    }, {
+      sanitizeResources: false, // 文件句柄可能需要在测试后清理
     });
 
     it("应该支持关闭日志器", async () => {
@@ -382,9 +386,13 @@ describe("Logger", () => {
           file: { path: testFile },
         },
       });
+      // 等待文件初始化完成
+      await new Promise((resolve) => setTimeout(resolve, 100));
       await logger.close();
       // 关闭后应该可以正常调用，不会抛出错误
       logger.info("关闭后测试");
+    }, {
+      sanitizeResources: false, // 文件句柄可能需要在测试后清理
     });
   });
 

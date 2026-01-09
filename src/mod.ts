@@ -376,9 +376,9 @@ export class Logger {
       }
 
       // 打开文件（追加模式）
+      // 注意：在 Deno 中，append 模式会自动启用 write，所以不需要同时指定 write: true
       const options: FileOpenOptions = {
         create: true,
-        write: true,
         append: true,
       };
       const handle = await open(path, options);
@@ -875,20 +875,22 @@ export class Logger {
    * 关闭日志器（关闭文件句柄等）
    */
   async close(): Promise<void> {
-    // 先释放 writer，然后关闭文件句柄
+    // 先关闭 writer（这会关闭底层流），然后关闭文件句柄
     if (this.fileWriter) {
       try {
-        await this.fileWriter.releaseLock();
+        await this.fileWriter.close();
       } catch {
-        // 忽略释放错误
+        // 忽略关闭错误（可能已经关闭）
       }
       this.fileWriter = undefined;
     }
+    // 注意：在 Deno 中，writer.close() 会关闭底层文件，所以 handle.close() 可能会失败
+    // 但在某些情况下，我们需要显式关闭 handle
     if (this.fileHandle) {
       try {
         this.fileHandle.close();
       } catch {
-        // 忽略关闭错误（可能已经关闭）
+        // 忽略关闭错误（writer 关闭时可能已经关闭了底层文件）
       }
       this.fileHandle = undefined;
     }
