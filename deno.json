@@ -1,13 +1,14 @@
 {
   "name": "@dreamer/logger",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "license": "MIT",
   "exports": {
-    ".": "./src/mod.ts"
+    ".": "./src/mod.ts",
+    "./client": "./src/client/mod.ts"
   },
   "publish": {
     "include": [
-      "src/mod.ts",
+      "src/**/*.ts",
       "LICENSE.md",
       "README.md"
     ],
@@ -32,7 +33,14 @@
     }
   },
   "imports": {
-    "@dreamer/test": "jsr:@dreamer/test@^1.0.0-beta.12",
-    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@1.0.0-beta.16"
+    "@dreamer/test": "jsr:@dreamer/test@^1.0.0-beta.13",
+    "@dreamer/runtime-adapter": "jsr:@dreamer/runtime-adapter@1.0.0-beta.17",
+    "esbuild": "npm:esbuild@^0.24.0",
+    "puppeteer": "npm:puppeteer@^23.0.0"
+  },
+  "nodeModulesDir": "auto",
+  "allowScripts": {
+    "allow": [],
+    "deny": ["npm:esbuild@0.24.2", "npm:puppeteer@23.11.1", "npm:puppeteer@24.35.0"]
   }
 }
