@@ -229,13 +229,13 @@ export class Logger {
    * @param level - 日志级别
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
   private log(
     level: LogLevel,
     message: string,
     data?: unknown,
-    error?: Error,
+    error?: unknown,
   ): void {
     // 提前检查，避免不必要的格式化
     if (!this.shouldLog(level)) {
@@ -261,9 +261,12 @@ export class Logger {
       args.push(data);
     }
 
-    // 添加错误对象
-    if (error) {
-      args.push(error);
+    // 添加错误对象（自动转换 unknown 为 Error）
+    if (error !== undefined) {
+      const errorObj = error instanceof Error
+        ? error
+        : new Error(String(error));
+      args.push(errorObj);
     }
 
     // 调用对应的控制台方法
@@ -275,9 +278,9 @@ export class Logger {
    *
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  debug(message: string, data?: unknown, error?: Error): void {
+  debug(message: string, data?: unknown, error?: unknown): void {
     this.log("debug", message, data, error);
   }
 
@@ -286,9 +289,9 @@ export class Logger {
    *
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  info(message: string, data?: unknown, error?: Error): void {
+  info(message: string, data?: unknown, error?: unknown): void {
     this.log("info", message, data, error);
   }
 
@@ -297,9 +300,9 @@ export class Logger {
    *
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  warn(message: string, data?: unknown, error?: Error): void {
+  warn(message: string, data?: unknown, error?: unknown): void {
     this.log("warn", message, data, error);
   }
 
@@ -308,9 +311,9 @@ export class Logger {
    *
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  error(message: string, data?: unknown, error?: Error): void {
+  error(message: string, data?: unknown, error?: unknown): void {
     this.log("error", message, data, error);
   }
 
@@ -319,9 +322,9 @@ export class Logger {
    *
    * @param message - 日志消息
    * @param data - 额外数据（可选）
-   * @param error - 错误对象（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  fatal(message: string, data?: unknown, error?: Error): void {
+  fatal(message: string, data?: unknown, error?: unknown): void {
     this.log("fatal", message, data, error);
   }
 

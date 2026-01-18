@@ -140,8 +140,8 @@ interface LogEntry {
   message: string;
   /** 数据（可选） */
   data?: unknown;
-  /** 错误（可选） */
-  error?: Error;
+  /** 错误（可选，支持 unknown 类型，会自动转换为 Error） */
+  error?: unknown;
   /** 标签 */
   tags?: string[];
   /** 上下文 */
@@ -149,13 +149,13 @@ interface LogEntry {
 }
 
 import {
+  type FileOpenOptions,
   getEnv,
   isTerminal,
   mkdir,
   open,
   rename,
   stat,
-  type FileOpenOptions,
 } from "@dreamer/runtime-adapter";
 
 /**
@@ -261,8 +261,9 @@ function formatText(entry: LogEntry, useColor: boolean = false): string {
     output += ` ${JSON.stringify(data)}`;
   }
 
-  if (error) {
-    output += `\n${error.stack || error.message}`;
+  if (error !== undefined) {
+    const errorObj = error instanceof Error ? error : new Error(String(error));
+    output += `\n${errorObj.stack || errorObj.message}`;
   }
 
   return output;
@@ -622,8 +623,12 @@ export class Logger {
 
   /**
    * 记录调试日志
+   *
+   * @param message - 日志消息
+   * @param data - 额外数据（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  debug(message: string, data?: unknown, error?: Error): void {
+  debug(message: string, data?: unknown, error?: unknown): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       level: "debug",
@@ -635,8 +640,12 @@ export class Logger {
 
   /**
    * 记录信息日志
+   *
+   * @param message - 日志消息
+   * @param data - 额外数据（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  info(message: string, data?: unknown, error?: Error): void {
+  info(message: string, data?: unknown, error?: unknown): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       level: "info",
@@ -648,8 +657,12 @@ export class Logger {
 
   /**
    * 记录警告日志
+   *
+   * @param message - 日志消息
+   * @param data - 额外数据（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  warn(message: string, data?: unknown, error?: Error): void {
+  warn(message: string, data?: unknown, error?: unknown): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       level: "warn",
@@ -661,8 +674,12 @@ export class Logger {
 
   /**
    * 记录错误日志
+   *
+   * @param message - 日志消息
+   * @param data - 额外数据（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  error(message: string, data?: unknown, error?: Error): void {
+  error(message: string, data?: unknown, error?: unknown): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       level: "error",
@@ -674,8 +691,12 @@ export class Logger {
 
   /**
    * 记录致命错误日志
+   *
+   * @param message - 日志消息
+   * @param data - 额外数据（可选）
+   * @param error - 错误对象（可选，支持 unknown 类型，会自动转换为 Error）
    */
-  fatal(message: string, data?: unknown, error?: Error): void {
+  fatal(message: string, data?: unknown, error?: unknown): void {
     this.writeLog({
       timestamp: new Date().toISOString(),
       level: "fatal",
