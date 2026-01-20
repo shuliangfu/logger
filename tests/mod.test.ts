@@ -77,6 +77,71 @@ describe("Logger", () => {
     });
   });
 
+  describe("时间戳显示", () => {
+    it("默认应该显示时间戳", () => {
+      const logger = createLogger({ level: "debug" });
+      logger.info("默认时间戳测试");
+    });
+
+    it("应该支持禁用时间戳", () => {
+      const logger = createLogger({ level: "debug", showTime: false });
+      logger.info("禁用时间戳测试");
+    });
+
+    it("应该支持启用时间戳", () => {
+      const logger = createLogger({ level: "debug", showTime: true });
+      logger.info("启用时间戳测试");
+    });
+
+    it("文本格式下应该支持控制时间戳显示", () => {
+      const logger1 = createLogger({
+        format: "text",
+        level: "debug",
+        showTime: true,
+      });
+      logger1.info("文本格式带时间戳");
+
+      const logger2 = createLogger({
+        format: "text",
+        level: "debug",
+        showTime: false,
+      });
+      logger2.info("文本格式无时间戳");
+    });
+
+    it("彩色格式下应该支持控制时间戳显示", () => {
+      const logger1 = createLogger({
+        format: "color",
+        level: "debug",
+        showTime: true,
+      });
+      logger1.info("彩色格式带时间戳");
+
+      const logger2 = createLogger({
+        format: "color",
+        level: "debug",
+        showTime: false,
+      });
+      logger2.info("彩色格式无时间戳");
+    });
+
+    it("JSON 格式下时间戳参数应该不影响输出（JSON 始终包含时间戳字段）", () => {
+      const logger1 = createLogger({
+        format: "json",
+        level: "debug",
+        showTime: true,
+      });
+      logger1.info("JSON 格式测试1");
+
+      const logger2 = createLogger({
+        format: "json",
+        level: "debug",
+        showTime: false,
+      });
+      logger2.info("JSON 格式测试2");
+    });
+  });
+
   describe("日志数据", () => {
     it("应该支持数据参数", () => {
       const logger = createLogger({ level: "debug" });
