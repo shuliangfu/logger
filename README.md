@@ -4,7 +4,7 @@
 
 [![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-47%20passed-brightgreen)](./TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-53%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
 
@@ -62,6 +62,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - JSON 格式（结构化日志，适合日志收集系统）
   - 文本格式（人类可读）
   - 彩色格式（仅控制台输出，自动检测环境）
+  - 时间戳控制（可配置是否显示时间戳）
 - **智能颜色控制**：
   - 自动检测运行环境（TTY/非TTY）
   - 后台运行时（非TTY）自动禁用颜色
@@ -113,6 +114,7 @@ import { Logger, createLogger } from "jsr:@dreamer/logger";
 const logger = createLogger({
   level: "info",
   format: "text", // 或 "json"
+  showTime: true, // 是否显示时间戳（默认 true）
   // 自动检测环境，后台运行时禁用颜色
   // 文件输出时自动禁用颜色
 });
@@ -177,11 +179,11 @@ logger.fatal("致命错误");
 
 ## 📊 测试报告
 
-本库经过全面测试，所有 47 个测试用例均已通过，测试覆盖率达到 100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
+本库经过全面测试，所有 53 个测试用例均已通过，测试覆盖率达到 100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
 
 **测试统计**：
-- **总测试数**: 47
-- **通过**: 47 ✅
+- **总测试数**: 53
+- **通过**: 53 ✅
 - **失败**: 0
 - **通过率**: 100% ✅
 - **测试执行时间**: ~21秒
@@ -189,7 +191,7 @@ logger.fatal("致命错误");
 - **测试环境**: Deno 2.6.5, Bun 1.3.0+
 
 **测试类型**：
-- ✅ 单元测试（34 个）
+- ✅ 单元测试（40 个）
 - ✅ 浏览器测试（13 个）
 
 **测试亮点**：
@@ -301,6 +303,21 @@ interface LogSamplingConfig {
 }
 ```
 
+#### `LoggerConfig`
+```typescript
+interface LoggerConfig {
+  level?: LogLevel;
+  format?: LogFormat;
+  output?: LogOutputConfig;
+  color?: boolean;
+  showTime?: boolean; // 是否显示时间戳（默认 true）
+  tags?: string[];
+  context?: Record<string, unknown>;
+  filter?: LogFilterConfig;
+  sampling?: LogSamplingConfig;
+}
+```
+
 ---
 
 ## 🎨 使用示例
@@ -318,6 +335,29 @@ const logger = createLogger({
 logger.info("应用启动");
 logger.warn("警告信息");
 logger.error("错误信息");
+```
+
+### 示例 1.1：控制时间戳显示
+
+```typescript
+import { createLogger } from "jsr:@dreamer/logger";
+
+// 默认显示时间戳
+const logger1 = createLogger({
+  level: "info",
+  format: "text",
+});
+logger1.info("这条日志包含时间戳");
+// 输出: 2026-01-20T03:20:59.689Z [INFO] 这条日志包含时间戳
+
+// 禁用时间戳
+const logger2 = createLogger({
+  level: "info",
+  format: "text",
+  showTime: false, // 不显示时间戳
+});
+logger2.info("这条日志不包含时间戳");
+// 输出: [INFO] 这条日志不包含时间戳
 ```
 
 ### 示例 2：性能监控
