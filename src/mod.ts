@@ -118,6 +118,8 @@ export interface LoggerConfig {
   output?: LogOutputConfig;
   /** 是否启用颜色（默认自动检测） */
   color?: boolean;
+  /** 是否显示时间戳（默认 true） */
+  showTimestamp?: boolean;
   /** 日志标签（用于过滤） */
   tags?: string[];
   /** 日志上下文（请求ID、用户ID等） */
@@ -239,15 +241,26 @@ function getLevelColor(level: LogLevel, useColor: boolean): string {
 
 /**
  * 格式化日志为文本
+ *
+ * @param entry - 日志条目
+ * @param useColor - 是否使用颜色
+ * @param showTimestamp - 是否显示时间戳
+ * @returns 格式化后的日志字符串
  */
-function formatText(entry: LogEntry, useColor: boolean = false): string {
+function formatText(
+  entry: LogEntry,
+  useColor: boolean = false,
+  showTimestamp: boolean = true,
+): string {
   const { timestamp, level, message, data, error, tags, context } = entry;
 
   const levelColor = getLevelColor(level, useColor);
   const reset = useColor ? ANSI_COLORS.reset : "";
 
-  let output =
-    `${timestamp} [${levelColor}${level.toUpperCase()}${reset}] ${message}`;
+  // 根据 showTimestamp 参数决定是否包含时间戳
+  let output = showTimestamp
+    ? `${timestamp} [${levelColor}${level.toUpperCase()}${reset}] ${message}`
+    : `[${levelColor}${level.toUpperCase()}${reset}] ${message}`;
 
   if (tags && tags.length > 0) {
     output += ` [${tags.join(", ")}]`;
@@ -278,20 +291,27 @@ function formatJSON(entry: LogEntry): string {
 
 /**
  * 格式化日志
+ *
+ * @param entry - 日志条目
+ * @param format - 日志格式
+ * @param useColor - 是否使用颜色
+ * @param showTimestamp - 是否显示时间戳
+ * @returns 格式化后的日志字符串
  */
 function formatLog(
   entry: LogEntry,
   format: LogFormat,
   useColor: boolean,
+  showTimestamp: boolean = true,
 ): string {
   switch (format) {
     case "json":
       return formatJSON(entry);
     case "color":
     case "text":
-      return formatText(entry, useColor);
+      return formatText(entry, useColor, showTimestamp);
     default:
-      return formatText(entry, false);
+      return formatText(entry, false, showTimestamp);
   }
 }
 
@@ -340,6 +360,7 @@ export class Logger {
       format: config.format || "text",
       output: config.output || { console: true },
       color: config.color ?? (config.format === "color" && isTTY()),
+      showTimestamp: config.showTimestamp ?? true,
       tags: config.tags || [],
       context: config.context || {},
       filter: config.filter,
@@ -511,13 +532,23 @@ export class Logger {
     // 控制台输出
     if (this.config.output.console) {
       const useColor = shouldUseColor(this.config, false);
-      const message = formatLog(finalEntry, this.config.format, useColor);
+      const message = formatLog(
+        finalEntry,
+        this.config.format,
+        useColor,
+        this.config.showTimestamp,
+      );
       console.log(message);
     }
 
     // 文件输出（始终不使用颜色）
     if (this.config.output.file && this.fileWriter) {
-      const message = formatLog(finalEntry, "text", false); // 文件输出始终使用文本格式，无颜色
+      const message = formatLog(
+        finalEntry,
+        "text",
+        false,
+        this.config.showTimestamp,
+      ); // 文件输出始终使用文本格式，无颜色
       const encoder = new TextEncoder();
       const data = encoder.encode(message + "\n");
       await this.fileWriter.write(data);
@@ -535,7 +566,12 @@ export class Logger {
     // 自定义输出
     if (this.config.output.custom) {
       const useColor = shouldUseColor(this.config, false);
-      const message = formatLog(finalEntry, this.config.format, useColor);
+      const message = formatLog(
+        finalEntry,
+        this.config.format,
+        useColor,
+        this.config.showTimestamp,
+      );
       await this.config.output.custom(message);
     }
   }
