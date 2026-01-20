@@ -119,7 +119,7 @@ export interface LoggerConfig {
   /** 是否启用颜色（默认自动检测） */
   color?: boolean;
   /** 是否显示时间戳（默认 true） */
-  timestamp?: boolean;
+  showTime?: boolean;
   /** 日志标签（用于过滤） */
   tags?: string[];
   /** 日志上下文（请求ID、用户ID等） */
@@ -360,7 +360,7 @@ export class Logger {
       format: config.format || "text",
       output: config.output || { console: true },
       color: config.color ?? (config.format === "color" && isTTY()),
-      timestamp: config.timestamp ?? true,
+      showTime: config.showTime ?? true,
       tags: config.tags || [],
       context: config.context || {},
       filter: config.filter,
@@ -536,7 +536,7 @@ export class Logger {
         finalEntry,
         this.config.format,
         useColor,
-        this.config.timestamp,
+        this.config.showTime,
       );
       console.log(message);
     }
@@ -547,7 +547,7 @@ export class Logger {
         finalEntry,
         "text",
         false,
-        this.config.timestamp,
+        this.config.showTime,
       ); // 文件输出始终使用文本格式，无颜色
       const encoder = new TextEncoder();
       const data = encoder.encode(message + "\n");
@@ -570,7 +570,7 @@ export class Logger {
         finalEntry,
         this.config.format,
         useColor,
-        this.config.timestamp,
+        this.config.showTime,
       );
       await this.config.output.custom(message);
     }
