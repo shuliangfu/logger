@@ -244,21 +244,21 @@ function getLevelColor(level: LogLevel, useColor: boolean): string {
  *
  * @param entry - 日志条目
  * @param useColor - 是否使用颜色
- * @param includeTimestamp - 是否包含时间戳
+ * @param showTime - 是否包含时间戳
  * @returns 格式化后的日志字符串
  */
 function formatText(
   entry: LogEntry,
   useColor: boolean = false,
-  includeTimestamp: boolean = true,
+  showTime: boolean = true,
 ): string {
   const { timestamp, level, message, data, error, tags, context } = entry;
 
   const levelColor = getLevelColor(level, useColor);
   const reset = useColor ? ANSI_COLORS.reset : "";
 
-  // 根据 includeTimestamp 参数决定是否包含时间戳
-  let output = includeTimestamp
+  // 根据 showTime 参数决定是否包含时间戳
+  let output = showTime
     ? `${timestamp} [${levelColor}${level.toUpperCase()}${reset}] ${message}`
     : `[${levelColor}${level.toUpperCase()}${reset}] ${message}`;
 
@@ -295,23 +295,23 @@ function formatJSON(entry: LogEntry): string {
  * @param entry - 日志条目
  * @param format - 日志格式
  * @param useColor - 是否使用颜色
- * @param includeTimestamp - 是否包含时间戳
+ * @param showTime - 是否包含时间戳
  * @returns 格式化后的日志字符串
  */
 function formatLog(
   entry: LogEntry,
   format: LogFormat,
   useColor: boolean,
-  includeTimestamp: boolean = true,
+  showTime: boolean = true,
 ): string {
   switch (format) {
     case "json":
       return formatJSON(entry);
     case "color":
     case "text":
-      return formatText(entry, useColor, includeTimestamp);
+      return formatText(entry, useColor, showTime);
     default:
-      return formatText(entry, false, includeTimestamp);
+      return formatText(entry, false, showTime);
   }
 }
 
