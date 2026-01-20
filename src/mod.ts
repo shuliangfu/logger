@@ -119,7 +119,7 @@ export interface LoggerConfig {
   /** 是否启用颜色（默认自动检测） */
   color?: boolean;
   /** 是否显示时间戳（默认 true） */
-  showTimestamp?: boolean;
+  timestamp?: boolean;
   /** 日志标签（用于过滤） */
   tags?: string[];
   /** 日志上下文（请求ID、用户ID等） */
@@ -244,21 +244,21 @@ function getLevelColor(level: LogLevel, useColor: boolean): string {
  *
  * @param entry - 日志条目
  * @param useColor - 是否使用颜色
- * @param showTimestamp - 是否显示时间戳
+ * @param includeTimestamp - 是否包含时间戳
  * @returns 格式化后的日志字符串
  */
 function formatText(
   entry: LogEntry,
   useColor: boolean = false,
-  showTimestamp: boolean = true,
+  includeTimestamp: boolean = true,
 ): string {
   const { timestamp, level, message, data, error, tags, context } = entry;
 
   const levelColor = getLevelColor(level, useColor);
   const reset = useColor ? ANSI_COLORS.reset : "";
 
-  // 根据 showTimestamp 参数决定是否包含时间戳
-  let output = showTimestamp
+  // 根据 includeTimestamp 参数决定是否包含时间戳
+  let output = includeTimestamp
     ? `${timestamp} [${levelColor}${level.toUpperCase()}${reset}] ${message}`
     : `[${levelColor}${level.toUpperCase()}${reset}] ${message}`;
 
@@ -295,23 +295,23 @@ function formatJSON(entry: LogEntry): string {
  * @param entry - 日志条目
  * @param format - 日志格式
  * @param useColor - 是否使用颜色
- * @param showTimestamp - 是否显示时间戳
+ * @param includeTimestamp - 是否包含时间戳
  * @returns 格式化后的日志字符串
  */
 function formatLog(
   entry: LogEntry,
   format: LogFormat,
   useColor: boolean,
-  showTimestamp: boolean = true,
+  includeTimestamp: boolean = true,
 ): string {
   switch (format) {
     case "json":
       return formatJSON(entry);
     case "color":
     case "text":
-      return formatText(entry, useColor, showTimestamp);
+      return formatText(entry, useColor, includeTimestamp);
     default:
-      return formatText(entry, false, showTimestamp);
+      return formatText(entry, false, includeTimestamp);
   }
 }
 
@@ -360,7 +360,7 @@ export class Logger {
       format: config.format || "text",
       output: config.output || { console: true },
       color: config.color ?? (config.format === "color" && isTTY()),
-      showTimestamp: config.showTimestamp ?? true,
+      timestamp: config.timestamp ?? true,
       tags: config.tags || [],
       context: config.context || {},
       filter: config.filter,
@@ -536,7 +536,7 @@ export class Logger {
         finalEntry,
         this.config.format,
         useColor,
-        this.config.showTimestamp,
+        this.config.timestamp,
       );
       console.log(message);
     }
@@ -547,7 +547,7 @@ export class Logger {
         finalEntry,
         "text",
         false,
-        this.config.showTimestamp,
+        this.config.timestamp,
       ); // 文件输出始终使用文本格式，无颜色
       const encoder = new TextEncoder();
       const data = encoder.encode(message + "\n");
@@ -570,7 +570,7 @@ export class Logger {
         finalEntry,
         this.config.format,
         useColor,
-        this.config.showTimestamp,
+        this.config.timestamp,
       );
       await this.config.output.custom(message);
     }
