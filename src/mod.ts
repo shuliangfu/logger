@@ -120,6 +120,8 @@ export interface LoggerConfig {
   color?: boolean;
   /** 是否显示时间戳（默认 true） */
   showTime?: boolean;
+  /** 是否显示日志级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签） */
+  showLevel?: boolean;
   /** 日志标签（用于过滤） */
   tags?: string[];
   /** 日志上下文（请求ID、用户ID等） */
@@ -245,22 +247,29 @@ function getLevelColor(level: LogLevel, useColor: boolean): string {
  * @param entry - 日志条目
  * @param useColor - 是否使用颜色
  * @param showTime - 是否包含时间戳
+ * @param showLevel - 是否显示日志级别标签
  * @returns 格式化后的日志字符串
  */
 function formatText(
   entry: LogEntry,
   useColor: boolean = false,
   showTime: boolean = true,
+  showLevel: boolean = true,
 ): string {
   const { timestamp, level, message, data, error, tags, context } = entry;
 
   const levelColor = getLevelColor(level, useColor);
   const reset = useColor ? ANSI_COLORS.reset : "";
 
-  // 根据 showTime 参数决定是否包含时间戳
+  // 构建级别标签部分
+  const levelLabel = showLevel
+    ? `[${levelColor}${level.toUpperCase()}${reset}] `
+    : "";
+
+  // 根据 showTime 和 showLevel 参数决定输出格式
   let output = showTime
-    ? `${timestamp} [${levelColor}${level.toUpperCase()}${reset}] ${message}`
-    : `[${levelColor}${level.toUpperCase()}${reset}] ${message}`;
+    ? `${timestamp} ${levelLabel}${message}`
+    : `${levelLabel}${message}`;
 
   if (tags && tags.length > 0) {
     output += ` [${tags.join(", ")}]`;
@@ -296,6 +305,7 @@ function formatJSON(entry: LogEntry): string {
  * @param format - 日志格式
  * @param useColor - 是否使用颜色
  * @param showTime - 是否包含时间戳
+ * @param showLevel - 是否显示日志级别标签
  * @returns 格式化后的日志字符串
  */
 function formatLog(
@@ -303,15 +313,16 @@ function formatLog(
   format: LogFormat,
   useColor: boolean,
   showTime: boolean = true,
+  showLevel: boolean = true,
 ): string {
   switch (format) {
     case "json":
       return formatJSON(entry);
     case "color":
     case "text":
-      return formatText(entry, useColor, showTime);
+      return formatText(entry, useColor, showTime, showLevel);
     default:
-      return formatText(entry, false, showTime);
+      return formatText(entry, false, showTime, showLevel);
   }
 }
 
@@ -361,6 +372,7 @@ export class Logger {
       output: config.output || { console: true },
       color: config.color ?? (config.format === "color" && isTTY()),
       showTime: config.showTime ?? true,
+      showLevel: config.showLevel ?? true,
       tags: config.tags || [],
       context: config.context || {},
       filter: config.filter,
@@ -537,6 +549,7 @@ export class Logger {
         this.config.format,
         useColor,
         this.config.showTime,
+        this.config.showLevel,
       );
       console.log(message);
     }
@@ -548,6 +561,7 @@ export class Logger {
         "text",
         false,
         this.config.showTime,
+        this.config.showLevel,
       ); // 文件输出始终使用文本格式，无颜色
       const encoder = new TextEncoder();
       const data = encoder.encode(message + "\n");
@@ -571,6 +585,7 @@ export class Logger {
         this.config.format,
         useColor,
         this.config.showTime,
+        this.config.showLevel,
       );
       await this.config.output.custom(message);
     }

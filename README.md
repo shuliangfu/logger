@@ -63,6 +63,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - 文本格式（人类可读）
   - 彩色格式（仅控制台输出，自动检测环境）
   - 时间戳控制（可配置是否显示时间戳）
+  - 级别标签控制（可配置是否显示 [info]、[error] 等级别标签）
 - **智能颜色控制**：
   - 自动检测运行环境（TTY/非TTY）
   - 后台运行时（非TTY）自动禁用颜色
@@ -115,6 +116,7 @@ const logger = createLogger({
   level: "info",
   format: "text", // 或 "json"
   showTime: true, // 是否显示时间戳（默认 true）
+  showLevel: true, // 是否显示级别标签（默认 true）
   // 自动检测环境，后台运行时禁用颜色
   // 文件输出时自动禁用颜色
 });
@@ -311,6 +313,7 @@ interface LoggerConfig {
   output?: LogOutputConfig;
   color?: boolean;
   showTime?: boolean; // 是否显示时间戳（默认 true）
+  showLevel?: boolean; // 是否显示级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签）
   tags?: string[];
   context?: Record<string, unknown>;
   filter?: LogFilterConfig;
@@ -358,6 +361,39 @@ const logger2 = createLogger({
 });
 logger2.info("这条日志不包含时间戳");
 // 输出: [INFO] 这条日志不包含时间戳
+```
+
+### 示例 1.2：控制级别标签显示
+
+```typescript
+import { createLogger } from "jsr:@dreamer/logger";
+
+// 默认显示级别标签
+const logger1 = createLogger({
+  level: "info",
+  format: "text",
+});
+logger1.info("这条日志包含级别标签");
+// 输出: 2026-01-20T03:20:59.689Z [INFO] 这条日志包含级别标签
+
+// 禁用级别标签
+const logger2 = createLogger({
+  level: "info",
+  format: "text",
+  showLevel: false, // 不显示级别标签
+});
+logger2.info("这条日志不包含级别标签");
+// 输出: 2026-01-20T03:20:59.689Z 这条日志不包含级别标签
+
+// 同时禁用时间戳和级别标签
+const logger3 = createLogger({
+  level: "info",
+  format: "text",
+  showTime: false,
+  showLevel: false,
+});
+logger3.info("这条日志只显示消息内容");
+// 输出: 这条日志只显示消息内容
 ```
 
 ### 示例 2：性能监控
