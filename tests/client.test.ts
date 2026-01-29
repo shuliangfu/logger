@@ -1,210 +1,44 @@
 /**
  * @fileoverview 客户端日志器测试
- * 测试客户端日志器在浏览器环境中的功能
+ * 使用 @dreamer/test 浏览器测试集成，在浏览器环境中验证客户端 logger 功能
+ *
+ * 说明：使用测试库的 browser 配置，自动管理 Puppeteer 与 esbuild 打包，
+ * 无需手动 existsSync/makeTempFile 等 runtime-adapter 依赖，Bun/Deno 兼容。
  */
 
-import {
-  existsSync,
-  makeTempFile,
-  resolve,
-  writeTextFileSync,
-} from "@dreamer/runtime-adapter";
-import { afterEach, beforeEach, describe, expect, it } from "@dreamer/test";
+import { RUNTIME } from "@dreamer/runtime-adapter";
+import { afterAll, beforeAll, describe, expect, it } from "@dreamer/test";
 
-/**
- * 动态加载依赖
- */
-async function loadDependencies() {
-  let esbuild: any;
-  let puppeteer: any;
+// 浏览器测试配置：由 @dreamer/test 自动打包 client 并启动浏览器
+const browserConfig = {
+  sanitizeOps: false,
+  sanitizeResources: false,
+  timeout: 60_000,
+  browser: {
+    enabled: true,
+    entryPoint: "./src/client/mod.ts",
+    globalName: "LoggerClient",
+    browserMode: true,
+    moduleLoadTimeout: 30_000,
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    reuseBrowser: true,
+  },
+};
 
-  try {
-    // 动态导入 esbuild
-    const esbuildModule = await import("esbuild");
-    esbuild = esbuildModule.default || esbuildModule;
+describe(`Logger Client - 浏览器测试 (${RUNTIME})`, () => {
+  beforeAll(() => {
+    // 可选：统一前置逻辑，当前无服务器等需启动
+  });
 
-    // 动态导入 puppeteer
-    const puppeteerModule = await import("puppeteer");
-    puppeteer = puppeteerModule.default || puppeteerModule;
-  } catch (error) {
-    console.warn(`无法加载依赖:`, error);
-    return null;
-  }
-  return { esbuild, puppeteer };
-}
+  afterAll(() => {
+    // 可选：统一后置清理
+  });
 
-describe("Logger Client - 浏览器测试", () => {
-  let browser: any = null;
-  let page: any = null;
-  let buildTimer: ReturnType<typeof setTimeout> | null = null;
-  let waitTimer: ReturnType<typeof setTimeout> | null = null;
-
-  // 跳过测试的辅助函数（如果 Puppeteer 不可用）
-  const skipIfNoBrowser = (testFn: () => void | Promise<void>) => {
-    return async () => {
-      if (!page) {
-        console.warn(`跳过测试：浏览器未初始化`);
-        return;
-      }
-      await testFn();
-    };
-  };
-
-  beforeEach(async () => {
-    try {
-      // 动态加载依赖
-      const deps = await loadDependencies();
-      if (!deps) {
-        console.warn(`跳过测试：依赖未加载`);
-        return;
-      }
-
-      const { esbuild: esbuildModule, puppeteer: puppeteerModule } = deps;
-
-      // 初始化浏览器测试环境
-      console.log(`初始化浏览器测试环境`);
-
-      // 尝试使用系统 Chrome（如果可用）
-      let executablePath: string | undefined;
-
-      // macOS Chrome 路径
-      const macChromePaths = [
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "/Applications/Chromium.app/Contents/MacOS/Chromium",
-      ];
-
-      // Linux Chrome 路径
-      const linuxChromePaths = [
-        "/usr/bin/google-chrome",
-        "/usr/bin/chromium",
-        "/usr/bin/chromium-browser",
-      ];
-
-      // 检查系统 Chrome
-      const allPaths = [...macChromePaths, ...linuxChromePaths];
-      for (const path of allPaths) {
-        try {
-          if (existsSync(path)) {
-            executablePath = path;
-            break;
-          }
-        } catch {
-          // 忽略错误
-        }
-      }
-
-      // 启动浏览器
-      browser = await puppeteerModule.launch({
-        headless: true,
-        executablePath,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
-
-      page = await browser.newPage();
-
-      // 构建客户端模块
-      // 使用 import.meta.url 获取当前文件路径
-      const currentDir = new URL(".", import.meta.url).pathname;
-      const clientModulePath = resolve(currentDir, "../src/client/mod.ts");
-
-      const buildResult = await esbuildModule.build({
-        entryPoints: [clientModulePath],
-        bundle: true,
-        format: "iife", // 使用 IIFE 格式，自动创建全局变量
-        target: "es2020",
-        write: false,
-        platform: "browser",
-        globalName: "LoggerClient",
-        minify: false,
-        sourcemap: false,
-      });
-
-      const bundleCode = new TextDecoder().decode(
-        buildResult.outputFiles[0].contents,
-      );
-
-      // 创建测试 HTML 页面
-      const testHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Logger Client Test</title>
-</head>
-<body>
-  <div id="test-container"></div>
-  <script>
-    ${bundleCode}
-
-    // 标记模块已加载
-    if (typeof window !== 'undefined') {
-      window.loggerClientReady = true;
-    }
-  </script>
-</body>
-</html>
-      `;
-
-      const htmlPath = await makeTempFile({ suffix: ".html" });
-      writeTextFileSync(htmlPath, testHtml);
-
-      // 加载测试页面
-      await page.goto(`file://${htmlPath}`, {
-        waitUntil: "networkidle0",
-      });
-
-      // 等待模块加载（IIFE 格式会自动创建全局变量 LoggerClient）
-      await page.waitForFunction(() => {
-        return typeof (window as any).LoggerClient !== "undefined" &&
-          (window as any).loggerClientReady === true;
-      }, { timeout: 10000 });
-    } catch (error) {
-      console.warn(`初始化失败:`, error);
-      if (browser) {
-        await browser.close().catch(() => {});
-      }
-      browser = null;
-      page = null;
-    }
-  }, { timeout: 30000, sanitizeOps: false, sanitizeResources: false });
-
-  afterEach(async () => {
-    // 清理定时器
-    if (buildTimer) {
-      clearTimeout(buildTimer);
-      buildTimer = null;
-    }
-    if (waitTimer) {
-      clearTimeout(waitTimer);
-      waitTimer = null;
-    }
-
-    // 关闭浏览器
-    if (page) {
-      try {
-        await page.close();
-      } catch {
-        // 忽略错误
-      }
-      page = null;
-    }
-
-    if (browser) {
-      try {
-        await browser.close();
-      } catch {
-        // 忽略错误
-      }
-      browser = null;
-    }
-  }, { sanitizeOps: false, sanitizeResources: false });
-
-  it(
-    "应该创建日志器实例",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        // IIFE 格式会将所有导出合并到全局变量中
-        const LoggerClient = (window as any).LoggerClient;
+  describe("基础功能", () => {
+    it("应该创建日志器实例", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const LoggerClient = (globalThis as any).LoggerClient;
         const { createLogger } = LoggerClient;
         const logger = createLogger();
         return {
@@ -216,22 +50,17 @@ describe("Logger Client - 浏览器测试", () => {
           hasFatal: typeof logger.fatal === "function",
         };
       });
-
       expect(result.hasLogger).toBe(true);
       expect(result.hasDebug).toBe(true);
       expect(result.hasInfo).toBe(true);
       expect(result.hasWarn).toBe(true);
       expect(result.hasError).toBe(true);
       expect(result.hasFatal).toBe(true);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持自定义配置",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持自定义配置", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "debug",
           prefix: "[Test]",
@@ -239,38 +68,29 @@ describe("Logger Client - 浏览器测试", () => {
           color: true,
           debug: true,
         });
-
         return {
           level: logger.getLevel(),
           prefix: logger.getPrefix(),
           debug: logger.getDebug(),
         };
       });
-
       expect(result.level).toBe("debug");
       expect(result.prefix).toBe("[Test]");
       expect(result.debug).toBe(true);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持日志级别控制",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持日志级别控制", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "warn",
           color: false,
           debug: true,
-        }); // 启用 debug 模式
-
-        // 捕获 console 调用
+        });
         const logs: string[] = [];
         const originalWarn = console.warn;
         const originalInfo = console.info;
         const originalDebug = console.debug;
-
         console.warn = (...args: any[]) => {
           logs.push("warn");
           originalWarn.apply(console, args);
@@ -283,136 +103,84 @@ describe("Logger Client - 浏览器测试", () => {
           logs.push("debug");
           originalDebug.apply(console, args);
         };
-
         logger.debug("debug message");
         logger.info("info message");
         logger.warn("warn message");
-
-        // 恢复 console
         console.warn = originalWarn;
         console.info = originalInfo;
         console.debug = originalDebug;
-
         return {
           hasWarn: logs.includes("warn"),
           hasInfo: logs.includes("info"),
           hasDebug: logs.includes("debug"),
         };
       });
-
       expect(result.hasWarn).toBe(true);
-      expect(result.hasInfo).toBe(false); // info 级别低于 warn，不应该输出
-      expect(result.hasDebug).toBe(false); // debug 级别低于 warn，不应该输出
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+      expect(result.hasInfo).toBe(false);
+      expect(result.hasDebug).toBe(false);
+    }, browserConfig);
 
-  it(
-    "应该支持调试模式控制",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持调试模式控制", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({ debug: false });
-
-        // 捕获 console 调用
         const logs: string[] = [];
         const originalError = console.error;
         console.error = (...args: any[]) => {
           logs.push("error:" + args.join(" "));
           originalError.apply(console, args);
         };
-
         logger.error("error message");
         logger.fatal("fatal message");
-
-        // 恢复 console
         console.error = originalError;
-
         return {
           hasError: logs.some((log) => log.includes("error")),
           hasFatal: logs.some((log) => log.includes("fatal")),
         };
       });
-
-      expect(result.hasError).toBe(false); // debug: false 时，所有日志都不输出
+      expect(result.hasError).toBe(false);
       expect(result.hasFatal).toBe(false);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持动态设置日志级别",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持动态设置日志级别", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({ level: "error" });
-
         logger.setLevel("debug");
-        const newLevel = logger.getLevel();
-
-        return {
-          level: newLevel,
-        };
+        return { level: logger.getLevel() };
       });
-
       expect(result.level).toBe("debug");
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持动态设置调试模式",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持动态设置调试模式", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({ debug: true });
-
         logger.setDebug(false);
         const debugState1 = logger.getDebug();
-
         logger.setDebug(true);
         const debugState2 = logger.getDebug();
-
-        return {
-          debugState1,
-          debugState2,
-        };
+        return { debugState1, debugState2 };
       });
-
       expect(result.debugState1).toBe(false);
       expect(result.debugState2).toBe(true);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持日志前缀",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持日志前缀", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({ prefix: "[MyApp]" });
-
         logger.setPrefix("[NewApp]");
-        const prefix = logger.getPrefix();
-
-        return {
-          prefix,
-        };
+        return { prefix: logger.getPrefix() };
       });
-
       expect(result.prefix).toBe("[NewApp]");
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持创建子日志器",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持创建子日志器", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const parentLogger = createLogger({ prefix: "[Parent]" });
         const childLogger = parentLogger.child({ prefix: "[Child]" });
-
         return {
           parentPrefix: parentLogger.getPrefix(),
           childPrefix: childLogger.getPrefix(),
@@ -420,99 +188,79 @@ describe("Logger Client - 浏览器测试", () => {
             typeof childLogger.info === "function",
         };
       });
-
       expect(result.parentPrefix).toBe("[Parent]");
       expect(result.childPrefix).toBe("[Child]");
       expect(result.hasChildMethods).toBe(true);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
+  });
 
-  it(
-    "应该支持所有日志级别方法",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+  describe("日志级别方法", () => {
+    it("应该支持所有日志级别方法", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "debug",
           debug: true,
           color: false,
-        }); // 禁用颜色以便测试
-
-        // 捕获所有 console 调用
+        });
         const logs: string[] = [];
-        const originalMethods = {
+        const orig = {
           debug: console.debug,
           info: console.info,
           warn: console.warn,
           error: console.error,
         };
-
         console.debug = (...args: any[]) => {
           logs.push("debug");
-          originalMethods.debug.apply(console, args);
+          orig.debug.apply(console, args);
         };
         console.info = (...args: any[]) => {
           logs.push("info");
-          originalMethods.info.apply(console, args);
+          orig.info.apply(console, args);
         };
         console.warn = (...args: any[]) => {
           logs.push("warn");
-          originalMethods.warn.apply(console, args);
+          orig.warn.apply(console, args);
         };
         console.error = (...args: any[]) => {
           logs.push("error");
-          originalMethods.error.apply(console, args);
+          orig.error.apply(console, args);
         };
-
         logger.debug("debug message");
         logger.info("info message");
         logger.warn("warn message");
         logger.error("error message");
         logger.fatal("fatal message");
-
-        // 恢复 console
-        console.debug = originalMethods.debug;
-        console.info = originalMethods.info;
-        console.warn = originalMethods.warn;
-        console.error = originalMethods.error;
-
+        console.debug = orig.debug;
+        console.info = orig.info;
+        console.warn = orig.warn;
+        console.error = orig.error;
         return {
           hasDebug: logs.includes("debug"),
           hasInfo: logs.includes("info"),
           hasWarn: logs.includes("warn"),
-          hasError: logs.includes("error"), // fatal 也使用 console.error
-          errorCount: logs.filter((log) => log === "error").length,
+          hasError: logs.includes("error"),
+          errorCount: logs.filter((l) => l === "error").length,
         };
       });
-
       expect(result.hasDebug).toBe(true);
       expect(result.hasInfo).toBe(true);
       expect(result.hasWarn).toBe(true);
       expect(result.hasError).toBe(true);
-      expect(result.errorCount).toBe(2); // error 和 fatal 都使用 console.error
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+      expect(result.errorCount).toBe(2);
+    }, browserConfig);
 
-  it(
-    "应该支持带数据的日志",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持带数据的日志", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "debug",
           debug: true,
           color: false,
-        }); // 禁用颜色以便测试
-
-        // 捕获 console 调用
+        });
         let logData: any = null;
         const originalInfo = console.info;
         console.info = function (...args: any[]) {
-          // 无颜色时：args[0] 是消息，args[1] 是数据
-          // 有颜色时：args[0] 是消息，args[1..n] 是样式，最后一个对象是数据
-          // 为了兼容两种情况，查找第一个对象类型的参数（排除 Error）
           for (let i = 1; i < args.length; i++) {
             if (
               typeof args[i] === "object" && args[i] !== null &&
@@ -524,141 +272,272 @@ describe("Logger Client - 浏览器测试", () => {
           }
           originalInfo.apply(console, args);
         };
-
         logger.info("test message", { key: "value", number: 123 });
-
-        // 恢复 console
         console.info = originalInfo;
-
         return {
           hasData: logData !== null,
           dataKey: logData?.key,
           dataNumber: logData?.number,
         };
       });
-
       expect(result.hasData).toBe(true);
       expect(result.dataKey).toBe("value");
       expect(result.dataNumber).toBe(123);
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持带错误对象的日志",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持带错误对象的日志", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "error",
           debug: true,
           color: false,
-        }); // 禁用颜色以便测试
-
-        // 捕获 console 调用
+        });
         let logError: any = null;
         const originalError = console.error;
         console.error = (...args: any[]) => {
-          // 查找 Error 对象（可能在最后，因为错误对象在最后添加）
-          const errorArg = args.find((arg) => arg instanceof Error);
-          if (errorArg) {
-            logError = errorArg;
-          }
+          const err = args.find((a) => a instanceof Error);
+          if (err) logError = err;
           originalError.apply(console, args);
         };
-
         const testError = new Error("test error");
         logger.error("error message", undefined, testError);
-
-        // 恢复 console
         console.error = originalError;
-
         return {
           hasError: logError !== null,
           errorMessage: logError?.message,
         };
       });
-
       expect(result.hasError).toBe(true);
       expect(result.errorMessage).toBe("test error");
-    }),
-    { sanitizeOps: false, sanitizeResources: false },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持彩色输出（如果启用）",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持彩色输出（如果启用）", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "info",
           color: true,
           debug: true,
         });
-
-        // 捕获 console 调用
         let hasStyleArg = false;
         const originalInfo = console.info;
         console.info = (...args: any[]) => {
-          // 检查是否有样式参数（CSS 样式字符串）
-          // 彩色输出时，args[0] 是格式化消息（包含 %c），args[1..n] 是样式字符串
           hasStyleArg = args.length > 1 &&
-            args.some((arg, index) =>
-              index > 0 && typeof arg === "string" && arg.includes("color:")
+            args.some((arg, i) =>
+              i > 0 && typeof arg === "string" && arg.includes("color:")
             );
           originalInfo.apply(console, args);
         };
-
         logger.info("test message");
-
-        // 恢复 console
         console.info = originalInfo;
-
-        return {
-          hasStyleArg,
-        };
+        return { hasStyleArg };
       });
-
-      // 彩色输出应该包含样式参数
       expect(result.hasStyleArg).toBe(true);
-    }),
-    { sanitizeOps: false, sanitizeResources: false, timeout: 30000 },
-  );
+    }, browserConfig);
 
-  it(
-    "应该支持无颜色输出（如果禁用）",
-    skipIfNoBrowser(async () => {
-      const result = await page.evaluate(() => {
-        const { createLogger } = (window as any).LoggerClient;
+    it("应该支持无颜色输出（如果禁用）", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const { createLogger } = (globalThis as any).LoggerClient;
         const logger = createLogger({
           level: "info",
           color: false,
           debug: true,
         });
-
-        // 捕获 console 调用
         let hasStyleArg = false;
         const originalInfo = console.info;
         console.info = (...args: any[]) => {
-          hasStyleArg = args.some((arg) =>
-            typeof arg === "string" && arg.includes("color:")
+          hasStyleArg = args.some((a) =>
+            typeof a === "string" && a.includes("color:")
           );
           originalInfo.apply(console, args);
         };
-
         logger.info("test message");
-
-        // 恢复 console
         console.info = originalInfo;
-
-        return {
-          hasStyleArg,
-        };
+        return { hasStyleArg };
       });
-
-      // 无颜色输出不应该包含样式参数
       expect(result.hasStyleArg).toBe(false);
-    }),
-    { sanitizeOps: false, sanitizeResources: false, timeout: 30000 },
-  );
-});
+    }, browserConfig);
+  });
+
+  describe("console 重定向", () => {
+    it(
+      "redirectConsoleToLogger 应将 console.log/info 转发到 logger.info",
+      async (t) => {
+        const result = await t!.browser!.evaluate(() => {
+          const {
+            createLogger,
+            redirectConsoleToLogger,
+            restoreConsole,
+          } = (globalThis as any).LoggerClient;
+          const logger = createLogger({ level: "debug", debug: true });
+          const infoCalls: string[] = [];
+          const origInfo = logger.info.bind(logger);
+          logger.info = (message: string) => {
+            infoCalls.push(message);
+            origInfo(message);
+          };
+          redirectConsoleToLogger(logger);
+          console.log("log-msg");
+          console.info("info-msg");
+          const hasLog = infoCalls.includes("log-msg");
+          const hasInfo = infoCalls.includes("info-msg");
+          restoreConsole();
+          return { hasLog, hasInfo };
+        });
+        expect(result.hasLog).toBe(true);
+        expect(result.hasInfo).toBe(true);
+      },
+      browserConfig,
+    );
+
+    it(
+      "redirectConsoleToLogger 应将 console.warn 转发到 logger.warn",
+      async (t) => {
+        const result = await t!.browser!.evaluate(() => {
+          const {
+            createLogger,
+            redirectConsoleToLogger,
+            restoreConsole,
+          } = (globalThis as any).LoggerClient;
+          const logger = createLogger({ level: "debug", debug: true });
+          const warnCalls: string[] = [];
+          const origWarn = logger.warn.bind(logger);
+          logger.warn = (message: string) => {
+            warnCalls.push(message);
+            origWarn(message);
+          };
+          redirectConsoleToLogger(logger);
+          console.warn("warn-msg");
+          const hasWarn = warnCalls.includes("warn-msg");
+          restoreConsole();
+          return { hasWarn };
+        });
+        expect(result.hasWarn).toBe(true);
+      },
+      browserConfig,
+    );
+
+    it(
+      "redirectConsoleToLogger 应将 console.error/debug 转发到 logger.error/logger.debug",
+      async (t) => {
+        const result = await t!.browser!.evaluate(() => {
+          const {
+            createLogger,
+            redirectConsoleToLogger,
+            restoreConsole,
+          } = (globalThis as any).LoggerClient;
+          const logger = createLogger({ level: "debug", debug: true });
+          const errorCalls: string[] = [];
+          const debugCalls: string[] = [];
+          const origError = logger.error.bind(logger);
+          const origDebug = logger.debug.bind(logger);
+          logger.error = (message: string) => {
+            errorCalls.push(message);
+            origError(message);
+          };
+          logger.debug = (message: string) => {
+            debugCalls.push(message);
+            origDebug(message);
+          };
+          redirectConsoleToLogger(logger);
+          console.error("error-msg");
+          console.debug("debug-msg");
+          const hasError = errorCalls.includes("error-msg");
+          const hasDebug = debugCalls.includes("debug-msg");
+          restoreConsole();
+          return { hasError, hasDebug };
+        });
+        expect(result.hasError).toBe(true);
+        expect(result.hasDebug).toBe(true);
+      },
+      browserConfig,
+    );
+
+    it(
+      "redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data",
+      async (t) => {
+        const result = await t!.browser!.evaluate(() => {
+          const {
+            createLogger,
+            redirectConsoleToLogger,
+            restoreConsole,
+          } = (globalThis as any).LoggerClient;
+          const logger = createLogger({ level: "debug", debug: true });
+          let lastMessage = "";
+          let lastData: any = undefined;
+          const origInfo = logger.info.bind(logger);
+          logger.info = (message: string, data?: unknown) => {
+            lastMessage = message;
+            lastData = data;
+            origInfo(message, data);
+          };
+          redirectConsoleToLogger(logger);
+          console.log("hello", { foo: 1 });
+          const ok = lastMessage === "hello" && lastData && lastData.foo === 1;
+          const dataFoo = lastData?.foo;
+          restoreConsole();
+          return { ok, lastMessage, dataFoo };
+        });
+        expect(result.ok).toBe(true);
+        expect(result.lastMessage).toBe("hello");
+        expect(result.dataFoo).toBe(1);
+      },
+      browserConfig,
+    );
+
+    it(
+      "restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger",
+      async (t) => {
+        const result = await t!.browser!.evaluate(() => {
+          const {
+            createLogger,
+            redirectConsoleToLogger,
+            restoreConsole,
+          } = (globalThis as any).LoggerClient;
+          const logger = createLogger({ level: "debug", debug: true });
+          const infoCalls: string[] = [];
+          const origInfo = logger.info.bind(logger);
+          logger.info = (message: string) => {
+            infoCalls.push(message);
+            origInfo(message);
+          };
+          const restore = redirectConsoleToLogger(logger);
+          console.log("before-restore");
+          const countBefore = infoCalls.length;
+          restore();
+          infoCalls.length = 0;
+          console.log("after-restore");
+          const countAfter = infoCalls.length;
+          return { countBefore, countAfter };
+        });
+        expect(result.countBefore).toBeGreaterThanOrEqual(1);
+        expect(result.countAfter).toBe(0);
+      },
+      browserConfig,
+    );
+
+    it("redirectConsoleToLogger 不传参时应使用默认 logger", async (t) => {
+      const result = await t!.browser!.evaluate(() => {
+        const {
+          redirectConsoleToLogger,
+          restoreConsole,
+          logger: defaultLogger,
+        } = (globalThis as any).LoggerClient;
+        const infoCalls: string[] = [];
+        const origInfo = defaultLogger.info.bind(defaultLogger);
+        defaultLogger.info = (message: string) => {
+          infoCalls.push(message);
+          origInfo(message);
+        };
+        redirectConsoleToLogger();
+        console.info("default-logger-msg");
+        const hasMsg = infoCalls.includes("default-logger-msg");
+        restoreConsole();
+        defaultLogger.info = origInfo;
+        return { hasMsg };
+      });
+      expect(result.hasMsg).toBe(true);
+    }, browserConfig);
+  });
+}, browserConfig);

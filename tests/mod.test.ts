@@ -4,7 +4,13 @@
 
 import { makeTempDir, readTextFile, remove } from "@dreamer/runtime-adapter";
 import { afterEach, beforeEach, describe, expect, it } from "@dreamer/test";
-import { createLogger, Logger, LogLevel } from "../src/mod.ts";
+import {
+  createLogger,
+  Logger,
+  LogLevel,
+  redirectConsoleToLogger,
+  restoreConsole,
+} from "../src/mod.ts";
 
 describe("Logger", () => {
   describe("createLogger", () => {
@@ -458,6 +464,144 @@ describe("Logger", () => {
       logger.info("关闭后测试");
     }, {
       sanitizeResources: false, // 文件句柄可能需要在测试后清理
+    });
+  });
+
+  describe("console 重定向", () => {
+    afterEach(() => {
+      // 每个用例结束后恢复全局 console，避免影响其他测试
+      restoreConsole();
+    });
+
+    it("redirectConsoleToLogger 应将 console.log/info 转发到 logger.info", () => {
+      const logger = createLogger({ level: "debug" });
+      const infoCalls: unknown[] = [];
+      const origInfo = logger.info.bind(logger);
+      logger.info = (message: string, data?: unknown, error?: unknown) => {
+        infoCalls.push([message, data, error]);
+        origInfo(message, data, error);
+      };
+
+      const restore = redirectConsoleToLogger(logger);
+      const g = globalThis as unknown as { console: Console };
+      g.console.log("log-msg");
+      g.console.info("info-msg");
+
+      expect(infoCalls.some((c) => (c as [string])[0] === "log-msg")).toBe(
+        true,
+      );
+      expect(infoCalls.some((c) => (c as [string])[0] === "info-msg")).toBe(
+        true,
+      );
+      restore();
+    });
+
+    it("redirectConsoleToLogger 应将 console.warn 转发到 logger.warn", () => {
+      const logger = createLogger({ level: "debug" });
+      const warnCalls: unknown[] = [];
+      const origWarn = logger.warn.bind(logger);
+      logger.warn = (message: string, data?: unknown, error?: unknown) => {
+        warnCalls.push([message, data, error]);
+        origWarn(message, data, error);
+      };
+
+      redirectConsoleToLogger(logger);
+      const g = globalThis as unknown as { console: Console };
+      g.console.warn("warn-msg");
+
+      expect(warnCalls.some((c) => (c as [string])[0] === "warn-msg")).toBe(
+        true,
+      );
+      restoreConsole();
+    });
+
+    it("redirectConsoleToLogger 应将 console.error/debug 转发到 logger.error/logger.debug", () => {
+      const logger = createLogger({ level: "debug" });
+      const errorCalls: unknown[] = [];
+      const debugCalls: unknown[] = [];
+      const origError = logger.error.bind(logger);
+      const origDebug = logger.debug.bind(logger);
+      logger.error = (message: string, data?: unknown, error?: unknown) => {
+        errorCalls.push([message, data, error]);
+        origError(message, data, error);
+      };
+      logger.debug = (message: string, data?: unknown, error?: unknown) => {
+        debugCalls.push([message, data, error]);
+        origDebug(message, data, error);
+      };
+
+      redirectConsoleToLogger(logger);
+      const g = globalThis as unknown as { console: Console };
+      g.console.error("error-msg");
+      g.console.debug("debug-msg");
+
+      expect(errorCalls.some((c) => (c as [string])[0] === "error-msg")).toBe(
+        true,
+      );
+      expect(debugCalls.some((c) => (c as [string])[0] === "debug-msg")).toBe(
+        true,
+      );
+      restoreConsole();
+    });
+
+    it("redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data", () => {
+      const logger = createLogger({ level: "debug" });
+      const infoCalls: unknown[] = [];
+      const origInfo = logger.info.bind(logger);
+      logger.info = (message: string, data?: unknown) => {
+        infoCalls.push([message, data]);
+        origInfo(message, data);
+      };
+
+      redirectConsoleToLogger(logger);
+      const g = globalThis as unknown as { console: Console };
+      g.console.log("hello", { foo: 1 });
+
+      expect(infoCalls.length).toBeGreaterThanOrEqual(1);
+      const last = infoCalls[infoCalls.length - 1] as [string, unknown];
+      expect(last[0]).toBe("hello");
+      expect(last[1]).toEqual({ foo: 1 });
+      restoreConsole();
+    });
+
+    it("restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger", () => {
+      const logger = createLogger({ level: "debug" });
+      const infoCalls: unknown[] = [];
+      const origInfo = logger.info.bind(logger);
+      logger.info = (message: string) => {
+        infoCalls.push(message);
+        origInfo(message);
+      };
+
+      const restore = redirectConsoleToLogger(logger);
+      const g = globalThis as unknown as { console: Console };
+      g.console.log("before-restore");
+      expect(infoCalls.length).toBeGreaterThanOrEqual(1);
+
+      restore();
+      infoCalls.length = 0;
+      g.console.log("after-restore");
+      // 恢复后不应再转发到 logger
+      expect(infoCalls.length).toBe(0);
+    });
+
+    it("redirectConsoleToLogger 不传参时应使用默认 logger", async () => {
+      const infoCalls: unknown[] = [];
+      const { logger: defaultLogger } = await import("../src/mod.ts");
+      const origInfo = defaultLogger.info.bind(defaultLogger);
+      defaultLogger.info = (message: string) => {
+        infoCalls.push(message);
+        origInfo(message);
+      };
+
+      redirectConsoleToLogger();
+      const g = globalThis as unknown as { console: Console };
+      g.console.info("default-logger-msg");
+
+      expect(infoCalls.some((c) => c === "default-logger-msg")).toBe(true);
+      restoreConsole();
+      // 恢复默认 logger 的 info，避免影响其他测试
+      defaultLogger.info = origInfo;
     });
   });
 

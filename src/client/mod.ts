@@ -11,6 +11,7 @@
  * - 彩色日志输出（不同级别使用不同颜色）
  * - 美化的日志格式
  * - 统一的日志输出接口
+ * - console 重定向：redirectConsoleToLogger() 将全局 console 统一由 logger 管理，restoreConsole() 恢复
  *
  * 环境兼容性：
  * - 客户端：✅ 支持（浏览器环境）
@@ -53,6 +54,9 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   fatal: 4,
 };
 
+/** 默认日志消息最大长度（字符），超出截断，防止超大消息导致卡顿或 DoS；0 表示不限制 */
+const DEFAULT_MAX_MESSAGE_LENGTH = 32 * 1024;
+
 /**
  * CSS 样式定义（用于浏览器控制台）
  */
@@ -89,27 +93,57 @@ export interface LoggerConfig {
   color?: boolean;
   /** 是否启用调试模式（默认：true，开发环境为 true 输出所有日志，生产环境为 false 禁用所有日志） */
   debug?: boolean;
+  /**
+   * 单条日志消息最大长度（字符数），超出时截断并追加省略标记，防止 DoS/卡顿。
+   * 0 表示不限制。默认 32KB。
+   */
+  maxMessageLength?: number;
+}
+
+/**
+ * 原始 console 引用（用于 console 重定向到 logger 时，Logger 自身输出仍使用真实控制台，避免递归）
+ */
+let _originalConsole:
+  | Pick<
+    Console,
+    "log" | "info" | "warn" | "error" | "debug"
+  >
+  | null = null;
+
+/**
+ * 获取用于输出的 console（重定向时使用原始 console，避免 Logger 输出再次进入 logger 造成递归）
+ *
+ * @returns 当前应使用的 console 对象
+ */
+function getConsoleForOutput(): Pick<
+  Console,
+  "log" | "info" | "warn" | "error" | "debug"
+> {
+  return _originalConsole ??
+    (globalThis as unknown as { console: Console }).console;
 }
 
 /**
  * 获取控制台方法（运行时动态获取，支持测试中拦截 console）
+ * 重定向到 logger 时使用原始 console，避免递归
  *
  * @param level - 日志级别
  * @returns 对应的控制台方法
  */
 function getConsoleMethod(level: LogLevel): typeof console.debug {
+  const c = getConsoleForOutput();
   switch (level) {
     case "debug":
-      return console.debug.bind(console);
+      return c.debug.bind(c);
     case "info":
-      return console.info.bind(console);
+      return c.info.bind(c);
     case "warn":
-      return console.warn.bind(console);
+      return c.warn.bind(c);
     case "error":
     case "fatal":
-      return console.error.bind(console);
+      return c.error.bind(c);
     default:
-      return console.log.bind(console);
+      return c.log.bind(c);
   }
 }
 
@@ -133,7 +167,22 @@ export class Logger {
       timestamp: config.timestamp || false,
       color: config.color !== undefined ? config.color : true,
       debug: config.debug !== undefined ? config.debug : true,
+      maxMessageLength: config.maxMessageLength ?? DEFAULT_MAX_MESSAGE_LENGTH,
     };
+  }
+
+  /**
+   * 按配置截断消息长度，防止过大消息导致卡顿或 DoS；0 表示不限制
+   *
+   * @param message - 原始消息
+   * @returns 截断后的消息
+   */
+  private truncateMessageIfNeeded(message: string): string {
+    const max = this.config.maxMessageLength ?? 0;
+    if (max <= 0 || message.length <= max) {
+      return message;
+    }
+    return message.slice(0, max) + "…";
   }
 
   /**
@@ -225,6 +274,7 @@ export class Logger {
 
   /**
    * 内部日志记录方法（统一处理所有级别的日志）
+   * 输出阶段包在 try/catch 中，避免控制台抛错（如循环引用展开）导致应用中断
    *
    * @param level - 日志级别
    * @param message - 日志消息
@@ -242,21 +292,22 @@ export class Logger {
       return;
     }
 
+    const truncatedMessage = this.truncateMessageIfNeeded(message);
     const consoleMethod = getConsoleMethod(level);
     const args: unknown[] = [];
 
     if (this.config.color) {
       const { message: formattedMessage, styles } = this.formatStyledMessage(
         level,
-        message,
+        truncatedMessage,
       );
       args.push(formattedMessage, ...styles);
     } else {
-      const formattedMessage = this.formatMessage(level, message);
+      const formattedMessage = this.formatMessage(level, truncatedMessage);
       args.push(formattedMessage);
     }
 
-    // 添加额外数据
+    // 添加额外数据（控制台展开时若遇循环引用可能抛错，由外层 try/catch 捕获）
     if (data !== undefined) {
       args.push(data);
     }
@@ -269,8 +320,16 @@ export class Logger {
       args.push(errorObj);
     }
 
-    // 调用对应的控制台方法
-    consoleMethod(...args);
+    // 调用对应的控制台方法（单点 try/catch，防止控制台抛错导致应用中断）
+    try {
+      consoleMethod(...args);
+    } catch (err) {
+      try {
+        getConsoleForOutput().error("logger output error", err);
+      } catch {
+        // 忽略二次输出失败
+      }
+    }
   }
 
   /**
@@ -383,7 +442,7 @@ export class Logger {
   }
 
   /**
-   * 创建子日志器（继承配置，可添加额外前缀）
+   * 创建子日志器（继承配置，可添加额外前缀；含 maxMessageLength）
    *
    * @param config - 子日志器配置
    * @returns 子日志器实例
@@ -392,7 +451,8 @@ export class Logger {
     return new Logger({
       ...this.config,
       ...config,
-      prefix: config.prefix || this.config.prefix,
+      prefix: config.prefix ?? this.config.prefix,
+      maxMessageLength: config.maxMessageLength ?? this.config.maxMessageLength,
     });
   }
 }
@@ -413,3 +473,90 @@ export function createLogger(
  * 默认日志器实例
  */
 export const logger: Logger = createLogger();
+
+/**
+ * 将多个参数格式化为日志消息和数据
+ * console 方法可能接收多个参数，第一个作为消息，其余作为数据
+ *
+ * @param args - console 方法的参数列表
+ * @returns [message, data] 消息和可选数据
+ */
+function formatConsoleArgs(args: unknown[]): [string, unknown | undefined] {
+  if (args.length === 0) {
+    return ["", undefined];
+  }
+  const first = args[0];
+  const message = typeof first === "string" ? first : String(first);
+  if (args.length === 1) {
+    return [message, undefined];
+  }
+  if (args.length === 2) {
+    return [message, args[1]];
+  }
+  return [message, args.slice(1)];
+}
+
+/**
+ * 将全局 console 重定向到指定 logger，统一由 logger 管理输出
+ * - console.log -> logger.info
+ * - console.info -> logger.info
+ * - console.warn -> logger.warn
+ * - console.error -> logger.error
+ * - console.debug -> logger.debug
+ * Logger 自身的控制台输出会使用原始 console，避免递归。
+ *
+ * @param targetLogger - 目标 logger 实例，未传则使用默认 logger
+ * @returns 恢复函数，调用可恢复原始 console
+ */
+export function redirectConsoleToLogger(targetLogger?: Logger): () => void {
+  const log = targetLogger ?? logger;
+  const g = globalThis as unknown as { console: Console };
+
+  // 保存原始 console，供 Logger 内部输出使用（避免递归）
+  _originalConsole = {
+    log: g.console.log.bind(g.console),
+    info: g.console.info.bind(g.console),
+    warn: g.console.warn.bind(g.console),
+    error: g.console.error.bind(g.console),
+    debug: g.console.debug.bind(g.console),
+  };
+
+  g.console.log = (...args: unknown[]) => {
+    const [message, data] = formatConsoleArgs(args);
+    log.info(message, data);
+  };
+  g.console.info = (...args: unknown[]) => {
+    const [message, data] = formatConsoleArgs(args);
+    log.info(message, data);
+  };
+  g.console.warn = (...args: unknown[]) => {
+    const [message, data] = formatConsoleArgs(args);
+    log.warn(message, data);
+  };
+  g.console.error = (...args: unknown[]) => {
+    const [message, data] = formatConsoleArgs(args);
+    log.error(message, data);
+  };
+  g.console.debug = (...args: unknown[]) => {
+    const [message, data] = formatConsoleArgs(args);
+    log.debug(message, data);
+  };
+
+  return restoreConsole;
+}
+
+/**
+ * 恢复全局 console 为重定向前的原始实现
+ * 仅在已调用 redirectConsoleToLogger 后有效
+ */
+export function restoreConsole(): void {
+  const g = globalThis as unknown as { console: Console };
+  if (_originalConsole) {
+    g.console.log = _originalConsole.log;
+    g.console.info = _originalConsole.info;
+    g.console.warn = _originalConsole.warn;
+    g.console.error = _originalConsole.error;
+    g.console.debug = _originalConsole.debug;
+    _originalConsole = null;
+  }
+}

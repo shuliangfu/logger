@@ -302,7 +302,7 @@ const prefix = logger.getPrefix(); // "[MyApp]"
 
 ##### `child(config)`
 
-创建子日志器（继承配置，可添加额外前缀）。
+创建子日志器（继承配置，可添加额外前缀；含 `maxMessageLength`）。
 
 **参数**：
 - `config`: `Partial<LoggerConfig>` - 子日志器配置
@@ -341,8 +341,15 @@ interface LoggerConfig {
   color?: boolean;
   /** 是否启用调试模式（默认：true，开发环境为 true 输出所有日志，生产环境为 false 禁用所有日志） */
   debug?: boolean;
+  /** 单条消息最大长度（字符），超出截断，0 表示不限制，默认 32KB，用于防止超大消息卡顿/DoS */
+  maxMessageLength?: number;
 }
 ```
+
+#### 健壮性
+
+- **消息长度**：可通过 `maxMessageLength` 限制单条消息长度（默认 32KB），超出部分截断并加省略标记。
+- **输出异常隔离**：控制台输出包在 try/catch 中，若控制台抛错（如展开循环引用对象）不会导致应用中断。
 
 ---
 
@@ -435,6 +442,7 @@ dbLogger.info("数据库查询");
 - **颜色支持**：彩色输出依赖浏览器控制台的 CSS 样式支持，所有现代浏览器都支持
 - **无文件输出**：客户端日志器不支持文件输出，如需持久化日志，请使用远程日志服务
 - **轻量级设计**：客户端日志器设计为轻量级，无外部依赖，适合前端应用使用
+- **消息长度**：可通过 `maxMessageLength` 限制单条消息长度（默认 32KB），防止超大消息导致卡顿
 
 ---
 
