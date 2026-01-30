@@ -22,16 +22,17 @@
 
 ### 测试文件统计
 
-| 测试文件 | 测试数 | 状态 | 说明 |
-|---------|--------|------|------|
-| `client.test.ts` | 20 | ✅ 全部通过 | 浏览器环境测试（@dreamer/test 浏览器集成） |
-| `mod.test.ts` | 46 | ✅ 全部通过 | 服务端功能测试 |
+| 测试文件         | 测试数 | 状态        | 说明                                       |
+| ---------------- | ------ | ----------- | ------------------------------------------ |
+| `client.test.ts` | 20     | ✅ 全部通过 | 浏览器环境测试（@dreamer/test 浏览器集成） |
+| `mod.test.ts`    | 46     | ✅ 全部通过 | 服务端功能测试                             |
 
 ## 功能测试详情
 
 ### 1. 浏览器环境测试 (client.test.ts) - 20 个测试
 
-使用 @dreamer/test 的 `browser.enabled` 配置，自动管理 Puppeteer 与 esbuild 打包，无需手写 existsSync/makeTempFile 等，Bun/Deno 兼容。
+使用 @dreamer/test 的 `browser.enabled` 配置，自动管理 Puppeteer 与 esbuild
+打包，无需手写 existsSync/makeTempFile 等，Bun/Deno 兼容。
 
 #### 1.1 基础功能 (9 个测试)
 
@@ -56,7 +57,8 @@
 
 - ✅ redirectConsoleToLogger 应将 console.log/info 转发到 logger.info
 - ✅ redirectConsoleToLogger 应将 console.warn 转发到 logger.warn
-- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到 logger.error/logger.debug
+- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到
+  logger.error/logger.debug
 - ✅ redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data
 - ✅ restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger
 - ✅ redirectConsoleToLogger 不传参时应使用默认 logger
@@ -64,6 +66,7 @@
 **测试结果**: 20 个测试全部通过
 
 **实现特点**:
+
 - ✅ 使用 @dreamer/test 浏览器测试集成，自动打包 client 并启动浏览器
 - ✅ 验证所有日志级别方法（debug、info、warn、error、fatal）
 - ✅ 验证配置选项（级别、前缀、调试模式、颜色）及动态修改
@@ -151,7 +154,8 @@
 
 - ✅ redirectConsoleToLogger 应将 console.log/info 转发到 logger.info
 - ✅ redirectConsoleToLogger 应将 console.warn 转发到 logger.warn
-- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到 logger.error/logger.debug
+- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到
+  logger.error/logger.debug
 - ✅ redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data
 - ✅ restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger
 - ✅ redirectConsoleToLogger 不传参时应使用默认 logger
@@ -166,96 +170,97 @@
 
 ### 接口方法覆盖
 
-| 方法 | 说明 | 测试覆盖 |
-|------|------|----------|
-| `createLogger()` | 创建日志器实例 | ✅ 2 个测试 |
-| `logger.debug()` | 调试级别日志 | ✅ 多个测试 |
-| `logger.info()` | 信息级别日志 | ✅ 多个测试 |
-| `logger.warn()` | 警告级别日志 | ✅ 多个测试 |
-| `logger.error()` | 错误级别日志 | ✅ 多个测试 |
-| `logger.fatal()` | 致命级别日志 | ✅ 多个测试 |
-| `logger.getLevel()` | 获取日志级别 | ✅ 1 个测试 |
-| `logger.setLevel()` | 设置日志级别 | ✅ 2 个测试 |
-| `logger.getContext()` | 获取上下文 | ✅ 2 个测试 |
-| `logger.setContext()` | 设置上下文 | ✅ 2 个测试 |
-| `logger.addTag()` | 添加标签 | ✅ 2 个测试 |
-| `logger.removeTag()` | 移除标签 | ✅ 1 个测试 |
-| `logger.child()` | 创建子日志器 | ✅ 3 个测试 |
-| `logger.startPerformance()` | 开始性能监控 | ✅ 1 个测试 |
-| `logger.endPerformance()` | 结束性能监控 | ✅ 2 个测试 |
-| `logger.performance()` | 性能监控装饰器 | ✅ 2 个测试 |
-| `logger.getFilter()` | 获取过滤配置 | ✅ 1 个测试 |
-| `logger.setFilter()` | 设置过滤配置 | ✅ 1 个测试 |
-| `logger.getSampling()` | 获取采样配置 | ✅ 1 个测试 |
-| `logger.setSampling()` | 设置采样配置 | ✅ 1 个测试 |
-| `logger.close()` | 关闭日志器 | ✅ 1 个测试 |
-| `logger.getPrefix()` | 获取前缀（客户端） | ✅ 2 个测试 |
-| `logger.setPrefix()` | 设置前缀（客户端） | ✅ 1 个测试 |
-| `logger.getDebug()` | 获取调试模式（客户端） | ✅ 2 个测试 |
-| `logger.setDebug()` | 设置调试模式（客户端） | ✅ 2 个测试 |
+| 方法                        | 说明                       | 测试覆盖                         |
+| --------------------------- | -------------------------- | -------------------------------- |
+| `createLogger()`            | 创建日志器实例             | ✅ 2 个测试                      |
+| `logger.debug()`            | 调试级别日志               | ✅ 多个测试                      |
+| `logger.info()`             | 信息级别日志               | ✅ 多个测试                      |
+| `logger.warn()`             | 警告级别日志               | ✅ 多个测试                      |
+| `logger.error()`            | 错误级别日志               | ✅ 多个测试                      |
+| `logger.fatal()`            | 致命级别日志               | ✅ 多个测试                      |
+| `logger.getLevel()`         | 获取日志级别               | ✅ 1 个测试                      |
+| `logger.setLevel()`         | 设置日志级别               | ✅ 2 个测试                      |
+| `logger.getContext()`       | 获取上下文                 | ✅ 2 个测试                      |
+| `logger.setContext()`       | 设置上下文                 | ✅ 2 个测试                      |
+| `logger.addTag()`           | 添加标签                   | ✅ 2 个测试                      |
+| `logger.removeTag()`        | 移除标签                   | ✅ 1 个测试                      |
+| `logger.child()`            | 创建子日志器               | ✅ 3 个测试                      |
+| `logger.startPerformance()` | 开始性能监控               | ✅ 1 个测试                      |
+| `logger.endPerformance()`   | 结束性能监控               | ✅ 2 个测试                      |
+| `logger.performance()`      | 性能监控装饰器             | ✅ 2 个测试                      |
+| `logger.getFilter()`        | 获取过滤配置               | ✅ 1 个测试                      |
+| `logger.setFilter()`        | 设置过滤配置               | ✅ 1 个测试                      |
+| `logger.getSampling()`      | 获取采样配置               | ✅ 1 个测试                      |
+| `logger.setSampling()`      | 设置采样配置               | ✅ 1 个测试                      |
+| `logger.close()`            | 关闭日志器                 | ✅ 1 个测试                      |
+| `logger.getPrefix()`        | 获取前缀（客户端）         | ✅ 2 个测试                      |
+| `logger.setPrefix()`        | 设置前缀（客户端）         | ✅ 1 个测试                      |
+| `logger.getDebug()`         | 获取调试模式（客户端）     | ✅ 2 个测试                      |
+| `logger.setDebug()`         | 设置调试模式（客户端）     | ✅ 2 个测试                      |
 | `redirectConsoleToLogger()` | 将 console 重定向到 logger | ✅ 服务端 6 个 + 客户端 6 个测试 |
-| `restoreConsole()` | 恢复原始 console | ✅ 服务端 + 客户端测试 |
+| `restoreConsole()`          | 恢复原始 console           | ✅ 服务端 + 客户端测试           |
 
 ### 边界情况覆盖
 
-| 边界情况 | 测试覆盖 |
-|---------|----------|
-| 不存在的性能监控 ID | ✅ |
-| 性能监控装饰器错误处理 | ✅ |
-| 重复添加标签 | ✅ |
-| 无效日志级别 | ✅ |
-| 空上下文和标签 | ✅ |
-| 文件输出初始化失败 | ✅ |
-| 关闭后的日志器操作 | ✅ |
+| 边界情况               | 测试覆盖 |
+| ---------------------- | -------- |
+| 不存在的性能监控 ID    | ✅       |
+| 性能监控装饰器错误处理 | ✅       |
+| 重复添加标签           | ✅       |
+| 无效日志级别           | ✅       |
+| 空上下文和标签         | ✅       |
+| 文件输出初始化失败     | ✅       |
+| 关闭后的日志器操作     | ✅       |
 
 ### 错误处理覆盖
 
-| 错误场景 | 测试覆盖 |
-|---------|----------|
-| 性能监控 ID 不存在 | ✅ |
-| 性能监控装饰器抛出错误 | ✅ |
-| 文件输出错误处理 | ✅ |
-| 自定义输出错误处理 | ✅ |
+| 错误场景               | 测试覆盖 |
+| ---------------------- | -------- |
+| 性能监控 ID 不存在     | ✅       |
+| 性能监控装饰器抛出错误 | ✅       |
+| 文件输出错误处理       | ✅       |
+| 自定义输出错误处理     | ✅       |
 
 ### 格式支持覆盖
 
-| 格式类型 | 测试覆盖 |
-|---------|----------|
-| 文本格式 | ✅ |
-| JSON 格式 | ✅ |
-| 彩色格式 | ✅ |
+| 格式类型  | 测试覆盖 |
+| --------- | -------- |
+| 文本格式  | ✅       |
+| JSON 格式 | ✅       |
+| 彩色格式  | ✅       |
 
 ### 输出方式覆盖
 
-| 输出方式 | 测试覆盖 |
-|---------|----------|
-| 控制台输出 | ✅ |
-| 文件输出 | ✅ |
-| 自定义输出 | ✅ |
-| 禁用输出 | ✅ |
+| 输出方式   | 测试覆盖 |
+| ---------- | -------- |
+| 控制台输出 | ✅       |
+| 文件输出   | ✅       |
+| 自定义输出 | ✅       |
+| 禁用输出   | ✅       |
 
 ### 浏览器环境覆盖
 
-| 功能 | 测试覆盖 |
-|------|----------|
-| 日志器实例创建 | ✅ |
-| 自定义配置 | ✅ |
-| 日志级别控制 | ✅ |
-| 调试模式控制 | ✅ |
-| 动态配置修改 | ✅ |
-| 日志前缀 | ✅ |
-| 子日志器创建 | ✅ |
-| 所有日志级别方法 | ✅ |
-| 数据对象传递 | ✅ |
-| 错误对象传递 | ✅ |
-| 彩色输出 | ✅ |
-| 无颜色输出 | ✅ |
-| console 重定向与恢复 | ✅ |
+| 功能                 | 测试覆盖 |
+| -------------------- | -------- |
+| 日志器实例创建       | ✅       |
+| 自定义配置           | ✅       |
+| 日志级别控制         | ✅       |
+| 调试模式控制         | ✅       |
+| 动态配置修改         | ✅       |
+| 日志前缀             | ✅       |
+| 子日志器创建         | ✅       |
+| 所有日志级别方法     | ✅       |
+| 数据对象传递         | ✅       |
+| 错误对象传递         | ✅       |
+| 彩色输出             | ✅       |
+| 无颜色输出           | ✅       |
+| console 重定向与恢复 | ✅       |
 
 ## 优点
 
 1. ✅ **全面的测试覆盖**：覆盖所有公共 API、边界情况、错误处理
-2. ✅ **浏览器测试集成**：使用 @dreamer/test 浏览器测试，Deno/Bun 下均可运行，无需手写 Puppeteer/esbuild
+2. ✅ **浏览器测试集成**：使用 @dreamer/test 浏览器测试，Deno/Bun
+   下均可运行，无需手写 Puppeteer/esbuild
 3. ✅ **多种格式支持**：测试文本、JSON、彩色三种日志格式
 4. ✅ **时间戳控制**：测试 showTime 参数，支持灵活控制时间戳显示
 5. ✅ **性能监控功能**：完整测试性能监控与装饰器
@@ -263,7 +268,8 @@
 7. ✅ **多种输出方式**：测试控制台、文件、自定义输出
 8. ✅ **子日志器功能**：测试子日志器创建与配置继承
 9. ✅ **上下文和标签**：测试上下文管理与标签系统
-10. ✅ **console 重定向**：服务端与客户端均测试 redirectConsoleToLogger / restoreConsole
+10. ✅ **console 重定向**：服务端与客户端均测试 redirectConsoleToLogger /
+    restoreConsole
 11. ✅ **错误处理**：主要错误场景均有测试覆盖
 12. ✅ **跨运行时兼容**：Deno、Bun 下测试通过
 
@@ -274,10 +280,12 @@
 **测试总数**: 66
 
 **测试分布**:
+
 - 浏览器环境测试（client.test.ts）：20 个 ✅
 - 服务端功能测试（mod.test.ts）：46 个 ✅
 
 **测试覆盖**:
+
 - ✅ 所有公共 API 方法
 - ✅ 所有日志级别（debug、info、warn、error、fatal）
 - ✅ 所有日志格式（文本、JSON、彩色）
@@ -295,4 +303,4 @@
 
 ---
 
-*测试报告更新时间: 2026-01-29*
+_测试报告更新时间: 2026-01-29_

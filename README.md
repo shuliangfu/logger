@@ -42,12 +42,12 @@ import { createLogger } from "jsr:@dreamer/logger/client";
 
 ## 🌍 环境兼容性
 
-| 环境 | 版本要求 | 状态 |
-|------|---------|------|
-| **Deno** | 2.5.0+ | ✅ 完全支持 |
-| **Bun** | 1.3.0+ | ✅ 完全支持 |
-| **服务端** | - | ✅ 支持（兼容 Deno 和 Bun 运行时，自动检测 TTY 环境，后台运行时自动禁用颜色，支持文件输出） |
-| **浏览器** | 现代浏览器 | ✅ 支持（客户端日志模块，详见 [客户端文档](./src/client/README.md)） |
+| 环境       | 版本要求   | 状态                                                                                        |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------- |
+| **Deno**   | 2.5.0+     | ✅ 完全支持                                                                                 |
+| **Bun**    | 1.3.0+     | ✅ 完全支持                                                                                 |
+| **服务端** | -          | ✅ 支持（兼容 Deno 和 Bun 运行时，自动检测 TTY 环境，后台运行时自动禁用颜色，支持文件输出） |
+| **浏览器** | 现代浏览器 | ✅ 支持（客户端日志模块，详见 [客户端文档](./src/client/README.md)）                        |
 
 **依赖**：无外部依赖（纯 TypeScript 实现）
 
@@ -74,7 +74,8 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - 控制台输出（支持彩色，自动检测环境）
   - 文件输出（纯文本，无颜色）
   - 多目标输出（同时输出到控制台和文件）
-  - **自动模式（output.auto）**：前台（有 TTY）只打控制台，后台（无 TTY）只写文件，无需改配置
+  - **自动模式（output.auto）**：前台（有 TTY）只打控制台，后台（无
+    TTY）只写文件，无需改配置
   - 自定义输出目标（Stream、HTTP 等）
 - **日志管理**：
   - 日志轮转（按大小、按时间）
@@ -101,7 +102,8 @@ import { createLogger } from "jsr:@dreamer/logger/client";
 - **性能监控和分析**：性能监控日志记录执行时间
 - **日志收集和分析**：结构化日志适合 ELK、Loki 等日志系统
 - **后台服务日志**：自动禁用颜色，适合文件输出和容器环境
-- **客户端日志**：浏览器环境的日志记录和调试（详见 [客户端文档](./src/client/README.md)）
+- **客户端日志**：浏览器环境的日志记录和调试（详见
+  [客户端文档](./src/client/README.md)）
 
 ---
 
@@ -110,7 +112,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
 ### 服务端示例
 
 ```typescript
-import { Logger, createLogger } from "jsr:@dreamer/logger";
+import { createLogger, Logger } from "jsr:@dreamer/logger";
 
 // 创建日志器
 const logger = createLogger({
@@ -135,8 +137,8 @@ const fileLogger = createLogger({
     file: {
       path: "./logs/app.log",
       // 文件输出时自动禁用颜色，即使 format 是 text
-    }
-  }
+    },
+  },
 });
 
 // 同时输出到控制台和文件
@@ -148,8 +150,8 @@ const multiLogger = createLogger({
     file: {
       path: "./logs/app.log",
       // 文件：始终无颜色
-    }
-  }
+    },
+  },
 });
 
 // 自动模式：根据运行环境选择输出目标（推荐后台服务）
@@ -190,9 +192,11 @@ logger.fatal("致命错误");
 
 ## 📊 测试报告
 
-本库经过全面测试，所有 66 个测试用例均已通过，测试覆盖率达到 100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
+本库经过全面测试，所有 66 个测试用例均已通过，测试覆盖率达到
+100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
 
 **测试统计**：
+
 - **总测试数**: 66
 - **通过**: 66 ✅
 - **失败**: 0
@@ -202,13 +206,16 @@ logger.fatal("致命错误");
 - **测试环境**: Deno 2.5.0+, Bun 1.3.0+
 
 **测试类型**：
+
 - ✅ 服务端单元测试（mod.test.ts，46 个）
 - ✅ 浏览器测试（client.test.ts，20 个，使用 @dreamer/test 浏览器测试集成）
 
 **测试亮点**：
+
 - ✅ 所有功能、边界情况、错误处理都有完整的测试覆盖
 - ✅ 浏览器测试使用 @dreamer/test 集成，Deno/Bun 下均可运行
-- ✅ 服务端与客户端均覆盖 console 重定向（redirectConsoleToLogger / restoreConsole）
+- ✅ 服务端与客户端均覆盖 console 重定向（redirectConsoleToLogger /
+  restoreConsole）
 - ✅ 集成测试验证端到端完整流程
 
 查看完整测试报告：[TEST_REPORT.md](./TEST_REPORT.md)
@@ -222,83 +229,107 @@ logger.fatal("致命错误");
 #### 方法
 
 ##### `debug(message, data?, error?)`
+
 记录调试日志
 
 ##### `info(message, data?, error?)`
+
 记录信息日志
 
 ##### `warn(message, data?, error?)`
+
 记录警告日志
 
 ##### `error(message, data?, error?)`
+
 记录错误日志
 
 ##### `fatal(message, data?, error?)`
+
 记录致命错误日志
 
 ##### `setLevel(level)`
+
 设置日志级别
 
 ##### `getLevel()`
+
 获取日志级别
 
 ##### `setContext(context)`
+
 设置上下文
 
 ##### `getContext()`
+
 获取上下文
 
 ##### `addTag(tag)`
+
 添加标签
 
 ##### `removeTag(tag)`
+
 移除标签
 
 ##### `setFilter(filter)`
+
 设置过滤配置
 
 ##### `getFilter()`
+
 获取过滤配置
 
 ##### `setSampling(sampling)`
+
 设置采样配置
 
 ##### `getSampling()`
+
 获取采样配置
 
 ##### `startPerformance(operation, data?)`
+
 开始性能监控
 
 ##### `endPerformance(id, level?)`
+
 结束性能监控并记录日志
 
 ##### `performance(operation, level?)`
+
 性能监控装饰器
 
 ##### `child(config)`
+
 创建子日志器
 
 ##### `close()`
+
 关闭日志器
 
 ### 类型定义
 
 #### `LogLevel`
+
 ```typescript
 type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 ```
 
 #### `LogFormat`
+
 ```typescript
 type LogFormat = "text" | "json" | "color";
 ```
 
 #### `RotateStrategy`
+
 ```typescript
 type RotateStrategy = "size" | "time" | "size-time";
 ```
 
 #### `LogFilterConfig`
+
 ```typescript
 interface LogFilterConfig {
   includeTags?: string[];
@@ -308,6 +339,7 @@ interface LogFilterConfig {
 ```
 
 #### `LogSamplingConfig`
+
 ```typescript
 interface LogSamplingConfig {
   rate: number;
@@ -316,6 +348,7 @@ interface LogSamplingConfig {
 ```
 
 #### `LoggerConfig`
+
 ```typescript
 interface LoggerConfig {
   level?: LogLevel;
@@ -335,8 +368,11 @@ interface LoggerConfig {
 #### 安全与健壮性
 
 - **路径校验**：文件输出路径若包含 `..` 会被拒绝，避免路径遍历写入到预期外目录。
-- **消息长度**：可通过 `maxMessageLength` 限制单条日志消息长度（默认 32KB），超出部分截断并加省略标记，降低超大消息导致的资源风险。
-- **序列化安全**：日志中的 `data`、`context` 及 JSON 格式输出使用安全序列化，遇循环引用等不可序列化值会输出 `[Unserializable]`，避免抛错。
+- **消息长度**：可通过 `maxMessageLength` 限制单条日志消息长度（默认
+  32KB），超出部分截断并加省略标记，降低超大消息导致的资源风险。
+- **序列化安全**：日志中的 `data`、`context` 及 JSON
+  格式输出使用安全序列化，遇循环引用等不可序列化值会输出
+  `[Unserializable]`，避免抛错。
 
 ---
 
@@ -432,7 +468,7 @@ const fetchUserData = logger.performance("获取用户数据", "info")(
     // 执行操作
     await new Promise((resolve) => setTimeout(resolve, 100));
     return { id: userId, name: "Alice" };
-  }
+  },
 );
 
 await fetchUserData("123");
@@ -544,7 +580,8 @@ const logger2 = createLogger({
 
 ### 写入方式
 
-- **文件写入**：只有在配置里显式设置了 `output.file`（并给出 `path`）时，日志才会写文件。未配置 `output.file` 时不会写任何文件。
+- **文件写入**：只有在配置里显式设置了 `output.file`（并给出
+  `path`）时，日志才会写文件。未配置 `output.file` 时不会写任何文件。
 - **控制台输出**：由 `output.console` 控制，默认为 `true`，即默认只打控制台。
 
 ### 手动配置（当前默认行为）
@@ -553,19 +590,21 @@ const logger2 = createLogger({
 
 - 只打控制台：不写 `output` 或 `output: { console: true }`（默认）。
 - 只写文件：`output: { console: false, file: { path: "./logs/app.log" } }`。
-- 同时控制台 + 文件：`output: { console: true, file: { path: "./logs/app.log" } }`。
+- 同时控制台 +
+  文件：`output: { console: true, file: { path: "./logs/app.log" } }`。
 
 ### 自动模式（根据运行环境切换）
 
 设置 `output.auto: true` 后，会根据**是否有 TTY** 自动选择输出目标，无需改配置：
 
-| 运行方式       | 是否有 TTY | 实际输出       |
-|----------------|------------|----------------|
-| 直接执行、交互终端 | 有         | 仅控制台       |
+| 运行方式                       | 是否有 TTY | 实际输出           |
+| ------------------------------ | ---------- | ------------------ |
+| 直接执行、交互终端             | 有         | 仅控制台           |
 | nohup、systemd、daemon、管道等 | 无         | 仅文件（路径见下） |
 
 - 有 TTY 时：等价于只开控制台，不写文件。
-- 无 TTY 时：等价于只写文件，不打控制台；文件路径为 `output.file?.path`，若未配置则使用默认路径 `./logs/app.log`。
+- 无 TTY 时：等价于只写文件，不打控制台；文件路径为
+  `output.file?.path`，若未配置则使用默认路径 `./logs/app.log`。
 
 示例：
 
@@ -584,7 +623,8 @@ const logger = createLogger({
 
 ## 📝 注意事项
 
-- **服务端和客户端支持**：服务端提供完整的日志管理功能，客户端提供轻量级日志模块（详见 [客户端文档](./src/client/README.md)）
+- **服务端和客户端支持**：服务端提供完整的日志管理功能，客户端提供轻量级日志模块（详见
+  [客户端文档](./src/client/README.md)）
 - **统一接口**：服务端和客户端提供统一的日志 API 接口，降低学习成本
 - **自动检测环境**：服务端自动检测 TTY 环境，后台运行时自动禁用颜色
 - **类型安全**：完整的 TypeScript 类型支持

@@ -4,9 +4,12 @@
 
 import { makeTempDir, readTextFile, remove } from "@dreamer/runtime-adapter";
 import { afterEach, beforeEach, describe, expect, it } from "@dreamer/test";
+import { ServiceContainer } from "@dreamer/service";
 import {
   createLogger,
+  createLoggerManager,
   Logger,
+  LoggerManager,
   LogLevel,
   redirectConsoleToLogger,
   restoreConsole,
@@ -611,5 +614,195 @@ describe("Logger", () => {
       expect(logger).toBeInstanceOf(Logger);
       expect(logger.getLevel()).toBe("info");
     });
+  });
+});
+
+describe("LoggerManager", () => {
+  it("应该创建 LoggerManager 实例", () => {
+    const manager = new LoggerManager();
+    expect(manager).toBeInstanceOf(LoggerManager);
+  });
+
+  it("应该获取默认管理器名称", () => {
+    const manager = new LoggerManager();
+    expect(manager.getName()).toBe("default");
+  });
+
+  it("应该获取自定义管理器名称", () => {
+    const manager = new LoggerManager({ name: "custom" });
+    expect(manager.getName()).toBe("custom");
+  });
+
+  it("应该获取或创建日志器", async () => {
+    const manager = new LoggerManager();
+    const logger1 = manager.getLogger("app");
+    const logger2 = manager.getLogger("app");
+
+    expect(logger1).toBeInstanceOf(Logger);
+    expect(logger1).toBe(logger2); // 应该返回同一个实例
+
+    await manager.close();
+  });
+
+  it("应该创建带有标签的日志器", async () => {
+    const manager = new LoggerManager({
+      defaultConfig: { tags: ["default-tag"] },
+    });
+    const logger = manager.getLogger("app", { tags: ["app-tag"] });
+
+    expect(logger).toBeInstanceOf(Logger);
+    await manager.close();
+  });
+
+  it("应该检查日志器是否存在", async () => {
+    const manager = new LoggerManager();
+
+    expect(manager.hasLogger("app")).toBe(false);
+    manager.getLogger("app");
+    expect(manager.hasLogger("app")).toBe(true);
+
+    await manager.close();
+  });
+
+  it("应该移除日志器", async () => {
+    const manager = new LoggerManager();
+
+    manager.getLogger("app");
+    expect(manager.hasLogger("app")).toBe(true);
+
+    manager.removeLogger("app");
+    expect(manager.hasLogger("app")).toBe(false);
+
+    await manager.close();
+  });
+
+  it("应该获取所有日志器名称", async () => {
+    const manager = new LoggerManager();
+
+    manager.getLogger("app");
+    manager.getLogger("db");
+    manager.getLogger("http");
+
+    const names = manager.getLoggerNames();
+    expect(names).toContain("app");
+    expect(names).toContain("db");
+    expect(names).toContain("http");
+    expect(names.length).toBe(3);
+
+    await manager.close();
+  });
+
+  it("应该设置所有日志器的级别", async () => {
+    const manager = new LoggerManager();
+
+    const appLogger = manager.getLogger("app");
+    const dbLogger = manager.getLogger("db");
+
+    manager.setLevel("error");
+
+    expect(appLogger.getLevel()).toBe("error");
+    expect(dbLogger.getLevel()).toBe("error");
+
+    await manager.close();
+  });
+
+  it("应该创建不缓存的日志器", async () => {
+    const manager = new LoggerManager();
+    const logger1 = manager.createLogger({ level: "debug" });
+    const logger2 = manager.createLogger({ level: "info" });
+
+    expect(logger1).toBeInstanceOf(Logger);
+    expect(logger2).toBeInstanceOf(Logger);
+    expect(logger1).not.toBe(logger2);
+
+    await logger1.close();
+    await logger2.close();
+    await manager.close();
+  });
+});
+
+describe("LoggerManager ServiceContainer 集成", () => {
+  it("应该设置和获取服务容器", () => {
+    const manager = new LoggerManager();
+    const container = new ServiceContainer();
+
+    expect(manager.getContainer()).toBeUndefined();
+
+    manager.setContainer(container);
+    expect(manager.getContainer()).toBe(container);
+  });
+
+  it("应该从服务容器获取 LoggerManager", () => {
+    const container = new ServiceContainer();
+    const manager = new LoggerManager({ name: "test" });
+    manager.setContainer(container);
+
+    container.registerSingleton("logger:test", () => manager);
+
+    const retrieved = LoggerManager.fromContainer(container, "test");
+    expect(retrieved).toBe(manager);
+  });
+
+  it("应该在服务不存在时返回 undefined", () => {
+    const container = new ServiceContainer();
+    const retrieved = LoggerManager.fromContainer(container, "non-existent");
+    expect(retrieved).toBeUndefined();
+  });
+
+  it("应该支持多个 LoggerManager 实例", () => {
+    const container = new ServiceContainer();
+
+    const appManager = new LoggerManager({ name: "app" });
+    appManager.setContainer(container);
+
+    const libManager = new LoggerManager({ name: "lib" });
+    libManager.setContainer(container);
+
+    container.registerSingleton("logger:app", () => appManager);
+    container.registerSingleton("logger:lib", () => libManager);
+
+    expect(LoggerManager.fromContainer(container, "app")).toBe(appManager);
+    expect(LoggerManager.fromContainer(container, "lib")).toBe(libManager);
+  });
+});
+
+describe("createLoggerManager 工厂函数", () => {
+  it("应该创建 LoggerManager 实例", () => {
+    const manager = createLoggerManager();
+    expect(manager).toBeInstanceOf(LoggerManager);
+  });
+
+  it("应该使用默认名称", () => {
+    const manager = createLoggerManager();
+    expect(manager.getName()).toBe("default");
+  });
+
+  it("应该使用自定义名称", () => {
+    const manager = createLoggerManager({ name: "custom" });
+    expect(manager.getName()).toBe("custom");
+  });
+
+  it("应该能够在服务容器中注册", () => {
+    const container = new ServiceContainer();
+
+    container.registerSingleton(
+      "logger:main",
+      () => createLoggerManager({ name: "main" }),
+    );
+
+    const manager = container.get<LoggerManager>("logger:main");
+    expect(manager).toBeInstanceOf(LoggerManager);
+    expect(manager.getName()).toBe("main");
+  });
+
+  it("应该支持默认配置", async () => {
+    const manager = createLoggerManager({
+      defaultConfig: { level: "error" },
+    });
+
+    const logger = manager.getLogger("app");
+    expect(logger.getLevel()).toBe("error");
+
+    await manager.close();
   });
 });

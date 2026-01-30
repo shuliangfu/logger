@@ -32,6 +32,8 @@
  * ```
  */
 
+import type { ServiceContainer } from "@dreamer/service";
+
 /**
  * 日志级别
  */
@@ -1243,4 +1245,176 @@ export function restoreConsole(): void {
     g.console.debug = _originalConsole.debug;
     _originalConsole = null;
   }
+}
+
+/**
+ * 日志管理器配置选项
+ */
+export interface LoggerManagerOptions {
+  /** 管理器名称（用于服务容器识别） */
+  name?: string;
+  /** 默认日志配置 */
+  defaultConfig?: LoggerConfig;
+}
+
+/**
+ * 日志管理器
+ *
+ * 管理多个 Logger 实例，支持按名称获取不同的日志器
+ */
+export class LoggerManager {
+  /** 日志器实例映射表 */
+  private loggers: Map<string, Logger> = new Map();
+  /** 默认日志配置 */
+  private defaultConfig: LoggerConfig;
+  /** 服务容器实例 */
+  private container?: ServiceContainer;
+  /** 管理器名称 */
+  private readonly managerName: string;
+
+  /**
+   * 创建日志管理器实例
+   * @param options 管理器配置选项
+   */
+  constructor(options: LoggerManagerOptions = {}) {
+    this.managerName = options.name || "default";
+    this.defaultConfig = options.defaultConfig || {};
+  }
+
+  /**
+   * 获取管理器名称
+   * @returns 管理器名称
+   */
+  getName(): string {
+    return this.managerName;
+  }
+
+  /**
+   * 设置服务容器
+   * @param container 服务容器实例
+   */
+  setContainer(container: ServiceContainer): void {
+    this.container = container;
+  }
+
+  /**
+   * 获取服务容器
+   * @returns 服务容器实例，如果未设置则返回 undefined
+   */
+  getContainer(): ServiceContainer | undefined {
+    return this.container;
+  }
+
+  /**
+   * 从服务容器创建 LoggerManager 实例
+   * @param container 服务容器实例
+   * @param name 管理器名称（默认 "default"）
+   * @returns 关联了服务容器的 LoggerManager 实例
+   */
+  static fromContainer(
+    container: ServiceContainer,
+    name = "default",
+  ): LoggerManager | undefined {
+    const serviceName = `logger:${name}`;
+    return container.tryGet<LoggerManager>(serviceName);
+  }
+
+  /**
+   * 获取或创建日志器
+   * @param name 日志器名称
+   * @param config 日志器配置（可选，未提供时使用默认配置）
+   * @returns Logger 实例
+   */
+  getLogger(name: string, config?: LoggerConfig): Logger {
+    let loggerInstance = this.loggers.get(name);
+    if (!loggerInstance) {
+      loggerInstance = new Logger({
+        ...this.defaultConfig,
+        ...config,
+        tags: [
+          ...(this.defaultConfig.tags || []),
+          ...(config?.tags || []),
+          name,
+        ],
+      });
+      this.loggers.set(name, loggerInstance);
+    }
+    return loggerInstance;
+  }
+
+  /**
+   * 创建新的日志器（不缓存）
+   * @param config 日志器配置
+   * @returns Logger 实例
+   */
+  createLogger(config?: LoggerConfig): Logger {
+    return new Logger({
+      ...this.defaultConfig,
+      ...config,
+    });
+  }
+
+  /**
+   * 检查是否存在指定名称的日志器
+   * @param name 日志器名称
+   * @returns 是否存在
+   */
+  hasLogger(name: string): boolean {
+    return this.loggers.has(name);
+  }
+
+  /**
+   * 移除指定名称的日志器
+   * @param name 日志器名称
+   */
+  removeLogger(name: string): void {
+    const loggerInstance = this.loggers.get(name);
+    if (loggerInstance) {
+      loggerInstance.close();
+      this.loggers.delete(name);
+    }
+  }
+
+  /**
+   * 获取所有日志器名称
+   * @returns 日志器名称数组
+   */
+  getLoggerNames(): string[] {
+    return Array.from(this.loggers.keys());
+  }
+
+  /**
+   * 设置所有日志器的日志级别
+   * @param level 日志级别
+   */
+  setLevel(level: LogLevel): void {
+    this.defaultConfig.level = level;
+    for (const loggerInstance of this.loggers.values()) {
+      loggerInstance.setLevel(level);
+    }
+  }
+
+  /**
+   * 关闭所有日志器
+   */
+  async close(): Promise<void> {
+    const closePromises: Promise<void>[] = [];
+    for (const loggerInstance of this.loggers.values()) {
+      closePromises.push(loggerInstance.close());
+    }
+    await Promise.all(closePromises);
+    this.loggers.clear();
+  }
+}
+
+/**
+ * 创建 LoggerManager 的工厂函数
+ * 用于服务容器注册
+ * @param options 日志管理器配置选项
+ * @returns LoggerManager 实例
+ */
+export function createLoggerManager(
+  options?: LoggerManagerOptions,
+): LoggerManager {
+  return new LoggerManager(options);
 }
