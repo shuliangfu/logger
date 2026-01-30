@@ -4,7 +4,7 @@
 
 [![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
-[![Tests](https://img.shields.io/badge/tests-66%20passed-brightgreen)](./TEST_REPORT.md)
+[![Tests: 85 passed](https://img.shields.io/badge/Tests-85%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
 
@@ -92,6 +92,10 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - 彩色日志输出（使用浏览器控制台 CSS 样式）
   - 调试模式控制（开发/生产环境切换）
   - 轻量级设计，无外部依赖
+- **服务容器集成**：
+  - 支持 `@dreamer/service` 依赖注入
+  - LoggerManager 管理多个 Logger 实例
+  - 提供 `createLoggerManager` 工厂函数
 
 ---
 
@@ -618,6 +622,58 @@ const logger = createLogger({
   },
 });
 ```
+
+---
+
+## 🔗 ServiceContainer 集成
+
+LoggerManager 支持与 `@dreamer/service` 服务容器集成：
+
+```typescript
+import { createLoggerManager, LoggerManager } from "jsr:@dreamer/logger";
+import { ServiceContainer } from "jsr:@dreamer/service";
+
+const container = new ServiceContainer();
+
+// 注册 LoggerManager
+container.registerSingleton("logger:main", () =>
+  createLoggerManager({
+    name: "main",
+    defaultConfig: { level: "info", format: "text" },
+  }));
+
+// 获取管理器
+const manager = container.get<LoggerManager>("logger:main");
+
+// 获取或创建日志器（按名称缓存）
+const appLogger = manager.getLogger("app");
+const dbLogger = manager.getLogger("db");
+
+appLogger.info("应用启动");
+dbLogger.info("数据库连接成功");
+
+// 统一设置所有日志器的级别
+manager.setLevel("debug");
+
+// 或者使用静态方法从服务容器获取
+const sameManager = LoggerManager.fromContainer(container, "main");
+```
+
+### LoggerManager 方法
+
+| 方法                                     | 描述                           |
+| ---------------------------------------- | ------------------------------ |
+| `getName()`                              | 获取管理器名称                 |
+| `setContainer(container)`                | 设置服务容器                   |
+| `getContainer()`                         | 获取服务容器                   |
+| `static fromContainer(container, name?)` | 从服务容器获取实例             |
+| `getLogger(name, config?)`               | 获取或创建日志器（按名称缓存） |
+| `createLogger(config?)`                  | 创建不缓存的日志器             |
+| `hasLogger(name)`                        | 检查日志器是否存在             |
+| `removeLogger(name)`                     | 移除日志器                     |
+| `getLoggerNames()`                       | 获取所有日志器名称             |
+| `setLevel(level)`                        | 设置所有日志器的级别           |
+| `close()`                                | 关闭所有日志器                 |
 
 ---
 

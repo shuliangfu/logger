@@ -1,31 +1,35 @@
 # @dreamer/logger 测试报告
 
-## 测试概览
+## 📊 测试概览
 
-- **测试库版本**: @dreamer/test@1.0.0-beta.22
-- **运行时适配器版本**: @dreamer/runtime-adapter@1.0.0-beta.20
-- **测试框架**: @dreamer/test（兼容 Deno 和 Bun，含浏览器测试集成）
-- **测试时间**: 2026-01-29
-- **测试环境**:
-  - Deno 版本要求: 2.5.0+
-  - Bun 版本要求: 1.3.0+
+| 项目             | 值                              |
+| ---------------- | ------------------------------- |
+| **测试库版本**   | `@dreamer/logger@1.0.0-beta.8`  |
+| **服务容器版本** | `@dreamer/service@1.0.0-beta.4` |
+| **测试框架**     | `@dreamer/test@^1.0.0-beta.39`  |
+| **测试时间**     | `2026-01-30`                    |
+| **测试环境**     | Deno 2.5+, Bun 1.0+             |
+| **测试文件数**   | 2                               |
+| **测试用例总数** | 85                              |
+| **测试通过率**   | 100% ✅                         |
+| **测试执行时间** | ~22s                            |
 
 ## 测试结果
 
 ### 总体统计
 
-- **总测试数**: 66
-- **通过**: 66 ✅
+- **总测试数**: 85
+- **通过**: 85 ✅
 - **失败**: 0
 - **通过率**: 100% ✅
 - **测试执行时间**: ~22 秒（Deno 环境，`deno test -A`）
 
 ### 测试文件统计
 
-| 测试文件         | 测试数 | 状态        | 说明                                       |
-| ---------------- | ------ | ----------- | ------------------------------------------ |
-| `client.test.ts` | 20     | ✅ 全部通过 | 浏览器环境测试（@dreamer/test 浏览器集成） |
-| `mod.test.ts`    | 46     | ✅ 全部通过 | 服务端功能测试                             |
+| 测试文件         | 测试数 | 状态        | 说明                                                   |
+| ---------------- | ------ | ----------- | ------------------------------------------------------ |
+| `client.test.ts` | 20     | ✅ 全部通过 | 浏览器环境测试（@dreamer/test 浏览器集成）             |
+| `mod.test.ts`    | 65     | ✅ 全部通过 | 服务端功能测试 + LoggerManager + ServiceContainer 集成 |
 
 ## 功能测试详情
 
@@ -164,41 +168,81 @@
 
 - ✅ 应该导出默认日志器实例
 
-**测试结果**: 46 个测试全部通过
+#### 2.15 LoggerManager (9 个测试)
+
+- ✅ 应该创建 LoggerManager 实例
+- ✅ 应该获取默认管理器名称
+- ✅ 应该获取自定义管理器名称
+- ✅ 应该获取或创建日志器
+- ✅ 应该创建带有标签的日志器
+- ✅ 应该检查日志器是否存在
+- ✅ 应该移除日志器
+- ✅ 应该获取所有日志器名称
+- ✅ 应该设置所有日志器的级别
+- ✅ 应该创建不缓存的日志器
+
+#### 2.16 LoggerManager ServiceContainer 集成 (4 个测试)
+
+- ✅ 应该设置和获取服务容器
+- ✅ 应该从服务容器获取 LoggerManager
+- ✅ 应该在服务不存在时返回 undefined
+- ✅ 应该支持多个 LoggerManager 实例
+
+#### 2.17 createLoggerManager 工厂函数 (5 个测试)
+
+- ✅ 应该创建 LoggerManager 实例
+- ✅ 应该使用默认名称
+- ✅ 应该使用自定义名称
+- ✅ 应该能够在服务容器中注册
+- ✅ 应该支持默认配置
+
+**测试结果**: 65 个测试全部通过
 
 ## 测试覆盖分析
 
 ### 接口方法覆盖
 
-| 方法                        | 说明                       | 测试覆盖                         |
-| --------------------------- | -------------------------- | -------------------------------- |
-| `createLogger()`            | 创建日志器实例             | ✅ 2 个测试                      |
-| `logger.debug()`            | 调试级别日志               | ✅ 多个测试                      |
-| `logger.info()`             | 信息级别日志               | ✅ 多个测试                      |
-| `logger.warn()`             | 警告级别日志               | ✅ 多个测试                      |
-| `logger.error()`            | 错误级别日志               | ✅ 多个测试                      |
-| `logger.fatal()`            | 致命级别日志               | ✅ 多个测试                      |
-| `logger.getLevel()`         | 获取日志级别               | ✅ 1 个测试                      |
-| `logger.setLevel()`         | 设置日志级别               | ✅ 2 个测试                      |
-| `logger.getContext()`       | 获取上下文                 | ✅ 2 个测试                      |
-| `logger.setContext()`       | 设置上下文                 | ✅ 2 个测试                      |
-| `logger.addTag()`           | 添加标签                   | ✅ 2 个测试                      |
-| `logger.removeTag()`        | 移除标签                   | ✅ 1 个测试                      |
-| `logger.child()`            | 创建子日志器               | ✅ 3 个测试                      |
-| `logger.startPerformance()` | 开始性能监控               | ✅ 1 个测试                      |
-| `logger.endPerformance()`   | 结束性能监控               | ✅ 2 个测试                      |
-| `logger.performance()`      | 性能监控装饰器             | ✅ 2 个测试                      |
-| `logger.getFilter()`        | 获取过滤配置               | ✅ 1 个测试                      |
-| `logger.setFilter()`        | 设置过滤配置               | ✅ 1 个测试                      |
-| `logger.getSampling()`      | 获取采样配置               | ✅ 1 个测试                      |
-| `logger.setSampling()`      | 设置采样配置               | ✅ 1 个测试                      |
-| `logger.close()`            | 关闭日志器                 | ✅ 1 个测试                      |
-| `logger.getPrefix()`        | 获取前缀（客户端）         | ✅ 2 个测试                      |
-| `logger.setPrefix()`        | 设置前缀（客户端）         | ✅ 1 个测试                      |
-| `logger.getDebug()`         | 获取调试模式（客户端）     | ✅ 2 个测试                      |
-| `logger.setDebug()`         | 设置调试模式（客户端）     | ✅ 2 个测试                      |
-| `redirectConsoleToLogger()` | 将 console 重定向到 logger | ✅ 服务端 6 个 + 客户端 6 个测试 |
-| `restoreConsole()`          | 恢复原始 console           | ✅ 服务端 + 客户端测试           |
+| 方法                             | 说明                       | 测试覆盖                         |
+| -------------------------------- | -------------------------- | -------------------------------- |
+| `createLogger()`                 | 创建日志器实例             | ✅ 2 个测试                      |
+| `logger.debug()`                 | 调试级别日志               | ✅ 多个测试                      |
+| `logger.info()`                  | 信息级别日志               | ✅ 多个测试                      |
+| `logger.warn()`                  | 警告级别日志               | ✅ 多个测试                      |
+| `logger.error()`                 | 错误级别日志               | ✅ 多个测试                      |
+| `logger.fatal()`                 | 致命级别日志               | ✅ 多个测试                      |
+| `logger.getLevel()`              | 获取日志级别               | ✅ 1 个测试                      |
+| `logger.setLevel()`              | 设置日志级别               | ✅ 2 个测试                      |
+| `logger.getContext()`            | 获取上下文                 | ✅ 2 个测试                      |
+| `logger.setContext()`            | 设置上下文                 | ✅ 2 个测试                      |
+| `logger.addTag()`                | 添加标签                   | ✅ 2 个测试                      |
+| `logger.removeTag()`             | 移除标签                   | ✅ 1 个测试                      |
+| `logger.child()`                 | 创建子日志器               | ✅ 3 个测试                      |
+| `logger.startPerformance()`      | 开始性能监控               | ✅ 1 个测试                      |
+| `logger.endPerformance()`        | 结束性能监控               | ✅ 2 个测试                      |
+| `logger.performance()`           | 性能监控装饰器             | ✅ 2 个测试                      |
+| `logger.getFilter()`             | 获取过滤配置               | ✅ 1 个测试                      |
+| `logger.setFilter()`             | 设置过滤配置               | ✅ 1 个测试                      |
+| `logger.getSampling()`           | 获取采样配置               | ✅ 1 个测试                      |
+| `logger.setSampling()`           | 设置采样配置               | ✅ 1 个测试                      |
+| `logger.close()`                 | 关闭日志器                 | ✅ 1 个测试                      |
+| `logger.getPrefix()`             | 获取前缀（客户端）         | ✅ 2 个测试                      |
+| `logger.setPrefix()`             | 设置前缀（客户端）         | ✅ 1 个测试                      |
+| `logger.getDebug()`              | 获取调试模式（客户端）     | ✅ 2 个测试                      |
+| `logger.setDebug()`              | 设置调试模式（客户端）     | ✅ 2 个测试                      |
+| `redirectConsoleToLogger()`      | 将 console 重定向到 logger | ✅ 服务端 6 个 + 客户端 6 个测试 |
+| `restoreConsole()`               | 恢复原始 console           | ✅ 服务端 + 客户端测试           |
+| `createLoggerManager()`          | 创建日志管理器实例         | ✅ 5 个测试                      |
+| `LoggerManager.getName()`        | 获取管理器名称             | ✅ 2 个测试                      |
+| `LoggerManager.setContainer()`   | 设置服务容器               | ✅ 1 个测试                      |
+| `LoggerManager.getContainer()`   | 获取服务容器               | ✅ 1 个测试                      |
+| `LoggerManager.fromContainer()`  | 从服务容器获取实例         | ✅ 2 个测试                      |
+| `LoggerManager.getLogger()`      | 获取或创建日志器           | ✅ 2 个测试                      |
+| `LoggerManager.createLogger()`   | 创建不缓存的日志器         | ✅ 1 个测试                      |
+| `LoggerManager.hasLogger()`      | 检查日志器是否存在         | ✅ 1 个测试                      |
+| `LoggerManager.removeLogger()`   | 移除日志器                 | ✅ 1 个测试                      |
+| `LoggerManager.getLoggerNames()` | 获取所有日志器名称         | ✅ 1 个测试                      |
+| `LoggerManager.setLevel()`       | 设置所有日志器的级别       | ✅ 1 个测试                      |
+| `LoggerManager.close()`          | 关闭所有日志器             | ✅ 多个测试                      |
 
 ### 边界情况覆盖
 
@@ -275,14 +319,18 @@
 
 ## 结论
 
-@dreamer/logger 库经过全面测试，所有 66 个测试全部通过，测试通过率 100%。
+@dreamer/logger 库经过全面测试，所有 85 个测试全部通过，测试通过率 100%。
 
-**测试总数**: 66
+**测试总数**: 85
 
 **测试分布**:
 
 - 浏览器环境测试（client.test.ts）：20 个 ✅
-- 服务端功能测试（mod.test.ts）：46 个 ✅
+- 服务端功能测试（mod.test.ts）：65 个 ✅
+  - Logger 基础功能：46 个
+  - LoggerManager：9 个
+  - ServiceContainer 集成：4 个
+  - createLoggerManager 工厂函数：5 个
 
 **测试覆盖**:
 
@@ -298,9 +346,12 @@
 - ✅ console 重定向与恢复（服务端 + 客户端）
 - ✅ 浏览器环境兼容性
 - ✅ 边界情况与错误处理
+- ✅ LoggerManager 管理器
+- ✅ ServiceContainer 服务容器集成
+- ✅ createLoggerManager 工厂函数
 
 **可以放心用于生产环境**。
 
 ---
 
-_测试报告更新时间: 2026-01-29_
+_测试报告更新时间: 2026-01-30_
