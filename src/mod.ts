@@ -142,7 +142,7 @@ export interface LoggerConfig {
   output?: LogOutputConfig;
   /** 是否启用颜色（默认自动检测） */
   color?: boolean;
-  /** 是否显示时间戳（默认 true） */
+  /** 是否显示时间戳（默认：TTY/控制台运行时不显示，后台运行时显示） */
   showTime?: boolean;
   /** 是否显示日志级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签） */
   showLevel?: boolean;
@@ -486,7 +486,8 @@ export class Logger {
       format: config.format || "text",
       output: resolvedOutput,
       color: config.color ?? (config.format === "color" && isTTY()),
-      showTime: config.showTime ?? true,
+      // 控制台运行（TTY）默认不显示时间，后台运行默认显示时间（方便日志追踪）
+      showTime: config.showTime ?? !isTTY(),
       showLevel: config.showLevel ?? true,
       tags: config.tags || [],
       context: config.context || {},
@@ -718,14 +719,14 @@ export class Logger {
       }
     }
 
-    // 文件输出（始终不使用颜色；复用模块级 TextEncoder；单目标失败不影响其他）
+    // 文件输出（始终不使用颜色；始终显示时间便于日志追踪；单目标失败不影响其他）
     if (this.config.output.file && this.fileWriter) {
       try {
         const message = formatLog(
           finalEntry,
           "text",
           false,
-          this.config.showTime,
+          true, // 文件输出始终显示时间
           this.config.showLevel,
         );
         const data = sharedTextEncoder.encode(message + "\n");
