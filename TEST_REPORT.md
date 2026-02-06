@@ -1,357 +1,352 @@
-# @dreamer/logger 测试报告
+# @dreamer/logger Test Report
 
-## 📊 测试概览
+## 📊 Test Overview
 
-| 项目             | 值                              |
-| ---------------- | ------------------------------- |
-| **测试库版本**   | `@dreamer/logger@1.0.0-beta.8`  |
-| **服务容器版本** | `@dreamer/service@1.0.0-beta.4` |
-| **测试框架**     | `@dreamer/test@^1.0.0-beta.39`  |
-| **测试时间**     | `2026-01-30`                    |
-| **测试环境**     | Deno 2.5+, Bun 1.0+             |
-| **测试文件数**   | 2                               |
-| **测试用例总数** | 85                              |
-| **测试通过率**   | 100% ✅                         |
-| **测试执行时间** | ~22s                            |
+| Item | Value |
+| ---- | ----- |
+| **Logger Version** | `@dreamer/logger@1.0.0-beta.8` |
+| **Service Container Version** | `@dreamer/service@1.0.0-beta.4` |
+| **Test Framework** | `@dreamer/test@^1.0.0-beta.39` |
+| **Test Date** | `2026-01-30` |
+| **Test Environment** | Deno 2.5+, Bun 1.0+ |
+| **Test Files** | 2 |
+| **Total Test Cases** | 85 |
+| **Pass Rate** | 100% ✅ |
+| **Execution Time** | ~22s |
 
-## 测试结果
+## Test Results
 
-### 总体统计
+### Overall Statistics
 
-- **总测试数**: 85
-- **通过**: 85 ✅
-- **失败**: 0
-- **通过率**: 100% ✅
-- **测试执行时间**: ~22 秒（Deno 环境，`deno test -A`）
+- **Total Tests**: 85
+- **Passed**: 85 ✅
+- **Failed**: 0
+- **Pass Rate**: 100% ✅
+- **Execution Time**: ~22 seconds (Deno, `deno test -A`)
 
-### 测试文件统计
+### Test File Statistics
 
-| 测试文件         | 测试数 | 状态        | 说明                                                   |
-| ---------------- | ------ | ----------- | ------------------------------------------------------ |
-| `client.test.ts` | 20     | ✅ 全部通过 | 浏览器环境测试（@dreamer/test 浏览器集成）             |
-| `mod.test.ts`    | 65     | ✅ 全部通过 | 服务端功能测试 + LoggerManager + ServiceContainer 集成 |
+| Test File | Tests | Status | Description |
+| --------- | ----- | ------ | ----------- |
+| `client.test.ts` | 20 | ✅ All Pass | Browser tests (@dreamer/test browser integration) |
+| `mod.test.ts` | 65 | ✅ All Pass | Server-side tests + LoggerManager + ServiceContainer integration |
 
-## 功能测试详情
+## Functional Test Details
 
-### 1. 浏览器环境测试 (client.test.ts) - 20 个测试
+### 1. Browser Environment Tests (client.test.ts) - 20 tests
 
-使用 @dreamer/test 的 `browser.enabled` 配置，自动管理 Puppeteer 与 esbuild
-打包，无需手写 existsSync/makeTempFile 等，Bun/Deno 兼容。
+Uses @dreamer/test `browser.enabled` config, auto-manages Puppeteer and esbuild bundling. No manual existsSync/makeTempFile needed. Bun/Deno compatible.
 
-#### 1.1 基础功能 (9 个测试)
+#### 1.1 Basic Features (9 tests)
 
-- ✅ 应该创建日志器实例
-- ✅ 应该支持自定义配置
-- ✅ 应该支持日志级别控制
-- ✅ 应该支持调试模式控制
-- ✅ 应该支持动态设置日志级别
-- ✅ 应该支持动态设置调试模式
-- ✅ 应该支持日志前缀
-- ✅ 应该支持创建子日志器
+- ✅ Should create logger instance
+- ✅ Should support custom config
+- ✅ Should support log level control
+- ✅ Should support debug mode control
+- ✅ Should support dynamic log level
+- ✅ Should support dynamic debug mode
+- ✅ Should support log prefix
+- ✅ Should support child logger creation
 
-#### 1.2 日志级别方法 (5 个测试)
+#### 1.2 Log Level Methods (5 tests)
 
-- ✅ 应该支持所有日志级别方法
-- ✅ 应该支持带数据的日志
-- ✅ 应该支持带错误对象的日志
-- ✅ 应该支持彩色输出（如果启用）
-- ✅ 应该支持无颜色输出（如果禁用）
+- ✅ Should support all log level methods
+- ✅ Should support logs with data
+- ✅ Should support logs with error objects
+- ✅ Should support colored output (when enabled)
+- ✅ Should support no-color output (when disabled)
 
-#### 1.3 console 重定向 (6 个测试)
+#### 1.3 Console Redirection (6 tests)
 
-- ✅ redirectConsoleToLogger 应将 console.log/info 转发到 logger.info
-- ✅ redirectConsoleToLogger 应将 console.warn 转发到 logger.warn
-- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到
-  logger.error/logger.debug
-- ✅ redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data
-- ✅ restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger
-- ✅ redirectConsoleToLogger 不传参时应使用默认 logger
+- ✅ redirectConsoleToLogger should forward console.log/info to logger.info
+- ✅ redirectConsoleToLogger should forward console.warn to logger.warn
+- ✅ redirectConsoleToLogger should forward console.error/debug to logger.error/logger.debug
+- ✅ redirectConsoleToLogger should support multiple args (first as message, rest as data)
+- ✅ restoreConsole should restore original console; subsequent console calls are not forwarded to logger
+- ✅ redirectConsoleToLogger without args should use default logger
 
-**测试结果**: 20 个测试全部通过
+**Result**: All 20 tests passed
 
-**实现特点**:
+**Implementation Notes**:
 
-- ✅ 使用 @dreamer/test 浏览器测试集成，自动打包 client 并启动浏览器
-- ✅ 验证所有日志级别方法（debug、info、warn、error、fatal）
-- ✅ 验证配置选项（级别、前缀、调试模式、颜色）及动态修改
-- ✅ 验证子日志器、数据/错误对象传递、彩色/无颜色输出
-- ✅ 验证 console 重定向与恢复（redirectConsoleToLogger / restoreConsole）
+- ✅ Uses @dreamer/test browser integration, auto-bundles client and launches browser
+- ✅ Verifies all log level methods (debug, info, warn, error, fatal)
+- ✅ Verifies config options (level, prefix, debug mode, colors) and dynamic updates
+- ✅ Verifies child logger, data/error object passing, colored/no-color output
+- ✅ Verifies console redirection and restore (redirectConsoleToLogger / restoreConsole)
 
-### 2. 服务端功能测试 (mod.test.ts) - 46 个测试
+### 2. Server-Side Tests (mod.test.ts) - 65 tests
 
-#### 2.1 createLogger (2 个测试)
+#### 2.1 createLogger (2 tests)
 
-- ✅ 应该创建日志实例
-- ✅ 应该支持自定义格式
+- ✅ Should create logger instance
+- ✅ Should support custom format
 
-#### 2.2 日志级别 (3 个测试)
+#### 2.2 Log Levels (3 tests)
 
-- ✅ 应该支持所有日志级别
-- ✅ 应该根据级别过滤日志
-- ✅ 应该支持设置和获取日志级别
+- ✅ Should support all log levels
+- ✅ Should filter logs by level
+- ✅ Should support setting and getting log level
 
-#### 2.3 日志格式 (3 个测试)
+#### 2.3 Log Formats (3 tests)
 
-- ✅ 应该支持文本格式
-- ✅ 应该支持 JSON 格式
-- ✅ 应该支持彩色格式
+- ✅ Should support text format
+- ✅ Should support JSON format
+- ✅ Should support colored format
 
-#### 2.4 时间戳显示 (6 个测试)
+#### 2.4 Timestamp Display (6 tests)
 
-- ✅ 默认应该显示时间戳
-- ✅ 应该支持禁用时间戳
-- ✅ 应该支持启用时间戳
-- ✅ 文本格式下应该支持控制时间戳显示
-- ✅ 彩色格式下应该支持控制时间戳显示
-- ✅ JSON 格式下时间戳参数应该不影响输出（JSON 始终包含时间戳字段）
+- ✅ Should show timestamp by default
+- ✅ Should support disabling timestamp
+- ✅ Should support enabling timestamp
+- ✅ Should support timestamp control in text format
+- ✅ Should support timestamp control in colored format
+- ✅ Timestamp param in JSON format should not affect output (JSON always includes timestamp field)
 
-#### 2.5 日志数据 (3 个测试)
+#### 2.5 Log Data (3 tests)
 
-- ✅ 应该支持数据参数
-- ✅ 应该支持错误参数
-- ✅ 应该支持数据和错误同时传递
+- ✅ Should support data parameter
+- ✅ Should support error parameter
+- ✅ Should support data and error together
 
-#### 2.6 上下文和标签 (4 个测试)
+#### 2.6 Context and Tags (4 tests)
 
-- ✅ 应该支持设置和获取上下文
-- ✅ 应该支持合并上下文
-- ✅ 应该支持添加和移除标签
-- ✅ 应该避免重复添加标签
+- ✅ Should support setting and getting context
+- ✅ Should support merging context
+- ✅ Should support adding and removing tags
+- ✅ Should avoid duplicate tags
 
-#### 2.7 子日志器 (2 个测试)
-
-- ✅ 应该创建子日志器
-- ✅ 应该继承父日志器的配置
-
-#### 2.8 性能监控 (5 个测试)
-
-- ✅ 应该支持性能监控
-- ✅ 应该处理不存在的性能监控 ID
-- ✅ 应该支持性能监控装饰器（同步函数）
-- ✅ 应该支持性能监控装饰器（异步函数）
-- ✅ 应该处理性能监控装饰器的错误
-
-#### 2.9 过滤配置 (4 个测试)
-
-- ✅ 应该支持设置和获取过滤配置
-- ✅ 应该支持包含标签过滤
-- ✅ 应该支持排除标签过滤
-- ✅ 应该支持自定义过滤函数
-
-#### 2.10 采样配置 (3 个测试)
-
-- ✅ 应该支持设置和获取采样配置
-- ✅ 应该支持采样率
-- ✅ 应该支持按级别采样
-
-#### 2.11 输出配置 (2 个测试)
-
-- ✅ 应该支持禁用控制台输出
-- ✅ 应该支持自定义输出
-
-#### 2.12 文件输出 (2 个测试)
-
-- ✅ 应该支持文件输出
-- ✅ 应该支持关闭日志器
-
-#### 2.13 console 重定向 (6 个测试)
-
-- ✅ redirectConsoleToLogger 应将 console.log/info 转发到 logger.info
-- ✅ redirectConsoleToLogger 应将 console.warn 转发到 logger.warn
-- ✅ redirectConsoleToLogger 应将 console.error/debug 转发到
-  logger.error/logger.debug
-- ✅ redirectConsoleToLogger 应支持多参数，第一个为消息、其余为 data
-- ✅ restoreConsole 应恢复原始 console，之后 console 调用不再转发到 logger
-- ✅ redirectConsoleToLogger 不传参时应使用默认 logger
-
-#### 2.14 默认日志器 (1 个测试)
-
-- ✅ 应该导出默认日志器实例
-
-#### 2.15 LoggerManager (9 个测试)
-
-- ✅ 应该创建 LoggerManager 实例
-- ✅ 应该获取默认管理器名称
-- ✅ 应该获取自定义管理器名称
-- ✅ 应该获取或创建日志器
-- ✅ 应该创建带有标签的日志器
-- ✅ 应该检查日志器是否存在
-- ✅ 应该移除日志器
-- ✅ 应该获取所有日志器名称
-- ✅ 应该设置所有日志器的级别
-- ✅ 应该创建不缓存的日志器
-
-#### 2.16 LoggerManager ServiceContainer 集成 (4 个测试)
-
-- ✅ 应该设置和获取服务容器
-- ✅ 应该从服务容器获取 LoggerManager
-- ✅ 应该在服务不存在时返回 undefined
-- ✅ 应该支持多个 LoggerManager 实例
-
-#### 2.17 createLoggerManager 工厂函数 (5 个测试)
-
-- ✅ 应该创建 LoggerManager 实例
-- ✅ 应该使用默认名称
-- ✅ 应该使用自定义名称
-- ✅ 应该能够在服务容器中注册
-- ✅ 应该支持默认配置
-
-**测试结果**: 65 个测试全部通过
-
-## 测试覆盖分析
-
-### 接口方法覆盖
-
-| 方法                             | 说明                       | 测试覆盖                         |
-| -------------------------------- | -------------------------- | -------------------------------- |
-| `createLogger()`                 | 创建日志器实例             | ✅ 2 个测试                      |
-| `logger.debug()`                 | 调试级别日志               | ✅ 多个测试                      |
-| `logger.info()`                  | 信息级别日志               | ✅ 多个测试                      |
-| `logger.warn()`                  | 警告级别日志               | ✅ 多个测试                      |
-| `logger.error()`                 | 错误级别日志               | ✅ 多个测试                      |
-| `logger.fatal()`                 | 致命级别日志               | ✅ 多个测试                      |
-| `logger.getLevel()`              | 获取日志级别               | ✅ 1 个测试                      |
-| `logger.setLevel()`              | 设置日志级别               | ✅ 2 个测试                      |
-| `logger.getContext()`            | 获取上下文                 | ✅ 2 个测试                      |
-| `logger.setContext()`            | 设置上下文                 | ✅ 2 个测试                      |
-| `logger.addTag()`                | 添加标签                   | ✅ 2 个测试                      |
-| `logger.removeTag()`             | 移除标签                   | ✅ 1 个测试                      |
-| `logger.child()`                 | 创建子日志器               | ✅ 3 个测试                      |
-| `logger.startPerformance()`      | 开始性能监控               | ✅ 1 个测试                      |
-| `logger.endPerformance()`        | 结束性能监控               | ✅ 2 个测试                      |
-| `logger.performance()`           | 性能监控装饰器             | ✅ 2 个测试                      |
-| `logger.getFilter()`             | 获取过滤配置               | ✅ 1 个测试                      |
-| `logger.setFilter()`             | 设置过滤配置               | ✅ 1 个测试                      |
-| `logger.getSampling()`           | 获取采样配置               | ✅ 1 个测试                      |
-| `logger.setSampling()`           | 设置采样配置               | ✅ 1 个测试                      |
-| `logger.close()`                 | 关闭日志器                 | ✅ 1 个测试                      |
-| `logger.getPrefix()`             | 获取前缀（客户端）         | ✅ 2 个测试                      |
-| `logger.setPrefix()`             | 设置前缀（客户端）         | ✅ 1 个测试                      |
-| `logger.getDebug()`              | 获取调试模式（客户端）     | ✅ 2 个测试                      |
-| `logger.setDebug()`              | 设置调试模式（客户端）     | ✅ 2 个测试                      |
-| `redirectConsoleToLogger()`      | 将 console 重定向到 logger | ✅ 服务端 6 个 + 客户端 6 个测试 |
-| `restoreConsole()`               | 恢复原始 console           | ✅ 服务端 + 客户端测试           |
-| `createLoggerManager()`          | 创建日志管理器实例         | ✅ 5 个测试                      |
-| `LoggerManager.getName()`        | 获取管理器名称             | ✅ 2 个测试                      |
-| `LoggerManager.setContainer()`   | 设置服务容器               | ✅ 1 个测试                      |
-| `LoggerManager.getContainer()`   | 获取服务容器               | ✅ 1 个测试                      |
-| `LoggerManager.fromContainer()`  | 从服务容器获取实例         | ✅ 2 个测试                      |
-| `LoggerManager.getLogger()`      | 获取或创建日志器           | ✅ 2 个测试                      |
-| `LoggerManager.createLogger()`   | 创建不缓存的日志器         | ✅ 1 个测试                      |
-| `LoggerManager.hasLogger()`      | 检查日志器是否存在         | ✅ 1 个测试                      |
-| `LoggerManager.removeLogger()`   | 移除日志器                 | ✅ 1 个测试                      |
-| `LoggerManager.getLoggerNames()` | 获取所有日志器名称         | ✅ 1 个测试                      |
-| `LoggerManager.setLevel()`       | 设置所有日志器的级别       | ✅ 1 个测试                      |
-| `LoggerManager.close()`          | 关闭所有日志器             | ✅ 多个测试                      |
-
-### 边界情况覆盖
-
-| 边界情况               | 测试覆盖 |
-| ---------------------- | -------- |
-| 不存在的性能监控 ID    | ✅       |
-| 性能监控装饰器错误处理 | ✅       |
-| 重复添加标签           | ✅       |
-| 无效日志级别           | ✅       |
-| 空上下文和标签         | ✅       |
-| 文件输出初始化失败     | ✅       |
-| 关闭后的日志器操作     | ✅       |
-
-### 错误处理覆盖
-
-| 错误场景               | 测试覆盖 |
-| ---------------------- | -------- |
-| 性能监控 ID 不存在     | ✅       |
-| 性能监控装饰器抛出错误 | ✅       |
-| 文件输出错误处理       | ✅       |
-| 自定义输出错误处理     | ✅       |
-
-### 格式支持覆盖
-
-| 格式类型  | 测试覆盖 |
+#### 2.7 Child Logger (2 tests)
+
+- ✅ Should create child logger
+- ✅ Should inherit parent logger config
+
+#### 2.8 Performance Monitoring (5 tests)
+
+- ✅ Should support performance monitoring
+- ✅ Should handle non-existent performance ID
+- ✅ Should support performance decorator (sync function)
+- ✅ Should support performance decorator (async function)
+- ✅ Should handle performance decorator errors
+
+#### 2.9 Filter Config (4 tests)
+
+- ✅ Should support setting and getting filter config
+- ✅ Should support include tag filter
+- ✅ Should support exclude tag filter
+- ✅ Should support custom filter function
+
+#### 2.10 Sampling Config (3 tests)
+
+- ✅ Should support setting and getting sampling config
+- ✅ Should support sampling rate
+- ✅ Should support level-based sampling
+
+#### 2.11 Output Config (2 tests)
+
+- ✅ Should support disabling console output
+- ✅ Should support custom output
+
+#### 2.12 File Output (2 tests)
+
+- ✅ Should support file output
+- ✅ Should support closing logger
+
+#### 2.13 Console Redirection (6 tests)
+
+- ✅ redirectConsoleToLogger should forward console.log/info to logger.info
+- ✅ redirectConsoleToLogger should forward console.warn to logger.warn
+- ✅ redirectConsoleToLogger should forward console.error/debug to logger.error/logger.debug
+- ✅ redirectConsoleToLogger should support multiple args (first as message, rest as data)
+- ✅ restoreConsole should restore original console; subsequent console calls are not forwarded to logger
+- ✅ redirectConsoleToLogger without args should use default logger
+
+#### 2.14 Default Logger (1 test)
+
+- ✅ Should export default logger instance
+
+#### 2.15 LoggerManager (9 tests)
+
+- ✅ Should create LoggerManager instance
+- ✅ Should get default manager name
+- ✅ Should get custom manager name
+- ✅ Should get or create logger
+- ✅ Should create logger with tags
+- ✅ Should check if logger exists
+- ✅ Should remove logger
+- ✅ Should get all logger names
+- ✅ Should set level for all loggers
+- ✅ Should create non-cached logger
+
+#### 2.16 LoggerManager ServiceContainer Integration (4 tests)
+
+- ✅ Should set and get service container
+- ✅ Should get LoggerManager from service container
+- ✅ Should return undefined when service does not exist
+- ✅ Should support multiple LoggerManager instances
+
+#### 2.17 createLoggerManager Factory (5 tests)
+
+- ✅ Should create LoggerManager instance
+- ✅ Should use default name
+- ✅ Should use custom name
+- ✅ Should be registerable in service container
+- ✅ Should support default config
+
+**Result**: All 65 tests passed
+
+## Test Coverage Analysis
+
+### API Method Coverage
+
+| Method | Description | Coverage |
+| ------ | ----------- | -------- |
+| `createLogger()` | Create logger instance | ✅ 2 tests |
+| `logger.debug()` | Debug level log | ✅ Multiple tests |
+| `logger.info()` | Info level log | ✅ Multiple tests |
+| `logger.warn()` | Warn level log | ✅ Multiple tests |
+| `logger.error()` | Error level log | ✅ Multiple tests |
+| `logger.fatal()` | Fatal level log | ✅ Multiple tests |
+| `logger.getLevel()` | Get log level | ✅ 1 test |
+| `logger.setLevel()` | Set log level | ✅ 2 tests |
+| `logger.getContext()` | Get context | ✅ 2 tests |
+| `logger.setContext()` | Set context | ✅ 2 tests |
+| `logger.addTag()` | Add tag | ✅ 2 tests |
+| `logger.removeTag()` | Remove tag | ✅ 1 test |
+| `logger.child()` | Create child logger | ✅ 3 tests |
+| `logger.startPerformance()` | Start performance monitoring | ✅ 1 test |
+| `logger.endPerformance()` | End performance monitoring | ✅ 2 tests |
+| `logger.performance()` | Performance decorator | ✅ 2 tests |
+| `logger.getFilter()` | Get filter config | ✅ 1 test |
+| `logger.setFilter()` | Set filter config | ✅ 1 test |
+| `logger.getSampling()` | Get sampling config | ✅ 1 test |
+| `logger.setSampling()` | Set sampling config | ✅ 1 test |
+| `logger.close()` | Close logger | ✅ 1 test |
+| `logger.getPrefix()` | Get prefix (client) | ✅ 2 tests |
+| `logger.setPrefix()` | Set prefix (client) | ✅ 1 test |
+| `logger.getDebug()` | Get debug mode (client) | ✅ 2 tests |
+| `logger.setDebug()` | Set debug mode (client) | ✅ 2 tests |
+| `redirectConsoleToLogger()` | Redirect console to logger | ✅ 6 server + 6 client tests |
+| `restoreConsole()` | Restore original console | ✅ Server + client tests |
+| `createLoggerManager()` | Create logger manager instance | ✅ 5 tests |
+| `LoggerManager.getName()` | Get manager name | ✅ 2 tests |
+| `LoggerManager.setContainer()` | Set service container | ✅ 1 test |
+| `LoggerManager.getContainer()` | Get service container | ✅ 1 test |
+| `LoggerManager.fromContainer()` | Get instance from service container | ✅ 2 tests |
+| `LoggerManager.getLogger()` | Get or create logger | ✅ 2 tests |
+| `LoggerManager.createLogger()` | Create non-cached logger | ✅ 1 test |
+| `LoggerManager.hasLogger()` | Check if logger exists | ✅ 1 test |
+| `LoggerManager.removeLogger()` | Remove logger | ✅ 1 test |
+| `LoggerManager.getLoggerNames()` | Get all logger names | ✅ 1 test |
+| `LoggerManager.setLevel()` | Set level for all loggers | ✅ 1 test |
+| `LoggerManager.close()` | Close all loggers | ✅ Multiple tests |
+
+### Edge Case Coverage
+
+| Edge Case | Coverage |
 | --------- | -------- |
-| 文本格式  | ✅       |
-| JSON 格式 | ✅       |
-| 彩色格式  | ✅       |
+| Non-existent performance ID | ✅ |
+| Performance decorator error handling | ✅ |
+| Duplicate tag addition | ✅ |
+| Invalid log level | ✅ |
+| Empty context and tags | ✅ |
+| File output init failure | ✅ |
+| Logger operations after close | ✅ |
 
-### 输出方式覆盖
+### Error Handling Coverage
 
-| 输出方式   | 测试覆盖 |
-| ---------- | -------- |
-| 控制台输出 | ✅       |
-| 文件输出   | ✅       |
-| 自定义输出 | ✅       |
-| 禁用输出   | ✅       |
+| Error Scenario | Coverage |
+| -------------- | -------- |
+| Non-existent performance ID | ✅ |
+| Performance decorator throws | ✅ |
+| File output error handling | ✅ |
+| Custom output error handling | ✅ |
 
-### 浏览器环境覆盖
+### Format Support Coverage
 
-| 功能                 | 测试覆盖 |
-| -------------------- | -------- |
-| 日志器实例创建       | ✅       |
-| 自定义配置           | ✅       |
-| 日志级别控制         | ✅       |
-| 调试模式控制         | ✅       |
-| 动态配置修改         | ✅       |
-| 日志前缀             | ✅       |
-| 子日志器创建         | ✅       |
-| 所有日志级别方法     | ✅       |
-| 数据对象传递         | ✅       |
-| 错误对象传递         | ✅       |
-| 彩色输出             | ✅       |
-| 无颜色输出           | ✅       |
-| console 重定向与恢复 | ✅       |
+| Format | Coverage |
+| ------ | -------- |
+| Text | ✅ |
+| JSON | ✅ |
+| Colored | ✅ |
 
-## 优点
+### Output Method Coverage
 
-1. ✅ **全面的测试覆盖**：覆盖所有公共 API、边界情况、错误处理
-2. ✅ **浏览器测试集成**：使用 @dreamer/test 浏览器测试，Deno/Bun
-   下均可运行，无需手写 Puppeteer/esbuild
-3. ✅ **多种格式支持**：测试文本、JSON、彩色三种日志格式
-4. ✅ **时间戳控制**：测试 showTime 参数，支持灵活控制时间戳显示
-5. ✅ **性能监控功能**：完整测试性能监控与装饰器
-6. ✅ **过滤和采样**：测试标签过滤、自定义过滤与采样配置
-7. ✅ **多种输出方式**：测试控制台、文件、自定义输出
-8. ✅ **子日志器功能**：测试子日志器创建与配置继承
-9. ✅ **上下文和标签**：测试上下文管理与标签系统
-10. ✅ **console 重定向**：服务端与客户端均测试 redirectConsoleToLogger /
-    restoreConsole
-11. ✅ **错误处理**：主要错误场景均有测试覆盖
-12. ✅ **跨运行时兼容**：Deno、Bun 下测试通过
+| Output Method | Coverage |
+| ------------- | -------- |
+| Console output | ✅ |
+| File output | ✅ |
+| Custom output | ✅ |
+| Disabled output | ✅ |
 
-## 结论
+### Browser Environment Coverage
 
-@dreamer/logger 库经过全面测试，所有 85 个测试全部通过，测试通过率 100%。
+| Feature | Coverage |
+| ------- | -------- |
+| Logger instance creation | ✅ |
+| Custom config | ✅ |
+| Log level control | ✅ |
+| Debug mode control | ✅ |
+| Dynamic config updates | ✅ |
+| Log prefix | ✅ |
+| Child logger creation | ✅ |
+| All log level methods | ✅ |
+| Data object passing | ✅ |
+| Error object passing | ✅ |
+| Colored output | ✅ |
+| No-color output | ✅ |
+| Console redirection and restore | ✅ |
 
-**测试总数**: 85
+## Strengths
 
-**测试分布**:
+1. ✅ **Comprehensive coverage**: All public APIs, edge cases, error handling
+2. ✅ **Browser test integration**: Uses @dreamer/test browser tests, runs on Deno/Bun without manual Puppeteer/esbuild setup
+3. ✅ **Multiple formats**: Text, JSON, and colored log formats tested
+4. ✅ **Timestamp control**: showTime param tested for flexible timestamp display
+5. ✅ **Performance monitoring**: Full coverage of performance monitoring and decorators
+6. ✅ **Filter and sampling**: Tag filters, custom filters, and sampling config tested
+7. ✅ **Multiple output methods**: Console, file, and custom output tested
+8. ✅ **Child logger**: Child logger creation and config inheritance tested
+9. ✅ **Context and tags**: Context management and tag system tested
+10. ✅ **Console redirection**: redirectConsoleToLogger / restoreConsole tested on both server and client
+11. ✅ **Error handling**: Main error scenarios covered
+12. ✅ **Cross-runtime compatibility**: Tests pass on Deno and Bun
 
-- 浏览器环境测试（client.test.ts）：20 个 ✅
-- 服务端功能测试（mod.test.ts）：65 个 ✅
-  - Logger 基础功能：46 个
-  - LoggerManager：9 个
-  - ServiceContainer 集成：4 个
-  - createLoggerManager 工厂函数：5 个
+## Conclusion
 
-**测试覆盖**:
+@dreamer/logger is fully tested with all 85 tests passing (100% pass rate).
 
-- ✅ 所有公共 API 方法
-- ✅ 所有日志级别（debug、info、warn、error、fatal）
-- ✅ 所有日志格式（文本、JSON、彩色）
-- ✅ 时间戳显示控制（showTime 参数）
-- ✅ 所有输出方式（控制台、文件、自定义）
-- ✅ 性能监控功能
-- ✅ 过滤和采样配置
-- ✅ 上下文和标签管理
-- ✅ 子日志器功能
-- ✅ console 重定向与恢复（服务端 + 客户端）
-- ✅ 浏览器环境兼容性
-- ✅ 边界情况与错误处理
-- ✅ LoggerManager 管理器
-- ✅ ServiceContainer 服务容器集成
-- ✅ createLoggerManager 工厂函数
+**Total Tests**: 85
 
-**可以放心用于生产环境**。
+**Distribution**:
+
+- Browser tests (client.test.ts): 20 ✅
+- Server-side tests (mod.test.ts): 65 ✅
+  - Logger basics: 46
+  - LoggerManager: 9
+  - ServiceContainer integration: 4
+  - createLoggerManager factory: 5
+
+**Coverage**:
+
+- ✅ All public API methods
+- ✅ All log levels (debug, info, warn, error, fatal)
+- ✅ All log formats (text, JSON, colored)
+- ✅ Timestamp display control (showTime param)
+- ✅ All output methods (console, file, custom)
+- ✅ Performance monitoring
+- ✅ Filter and sampling config
+- ✅ Context and tag management
+- ✅ Child logger
+- ✅ Console redirection and restore (server + client)
+- ✅ Browser compatibility
+- ✅ Edge cases and error handling
+- ✅ LoggerManager
+- ✅ ServiceContainer integration
+- ✅ createLoggerManager factory
+
+**Ready for production use.**
 
 ---
 
-_测试报告更新时间: 2026-01-30_
+_Test report updated: 2026-01-30_
