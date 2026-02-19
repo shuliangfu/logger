@@ -171,8 +171,7 @@ All 86 tests pass (100% pass rate). See
 - **Coverage**: All public APIs, edge cases, error handling
 - **Types**: Server unit tests (mod.test.ts), browser tests (client.test.ts)
 
-**v1.0.1** (2026-02-19) — Changed: docs reorganized to docs/en-US & docs/zh-CN;
-browser test browserMode: false; zh-CN TEST_REPORT rewritten.
+**v1.0.2** (2026-02-20) — Changed: bump @dreamer/test to ^1.0.12.
 [Changelog](./docs/en-US/CHANGELOG.md)
 
 ---

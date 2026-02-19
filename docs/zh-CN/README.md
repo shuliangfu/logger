@@ -224,8 +224,8 @@ logger.fatal("致命错误");
   restoreConsole）
 - ✅ 集成测试验证端到端完整流程
 
-**v1.0.1** (2026-02-19) — 变更：文档结构调整至 docs；浏览器测试 browserMode:
-false；中文测试报告按规范重写。查看完整测试报告：[TEST_REPORT.md](./TEST_REPORT.md)。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
+**v1.0.2** (2026-02-20) — 变更：将 @dreamer/test 升级为
+^1.0.12。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 

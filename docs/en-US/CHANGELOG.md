@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.2] - 2026-02-20
+
+### Changed
+
+- **Dependencies**: Bump `@dreamer/test` to `^1.0.12`.
+
+---
+
 ## [1.0.1] - 2026-02-19
 
 ### Changed
