@@ -1,18 +1,18 @@
 # @dreamer/logger
 
-> 一个兼容 Deno 和 Bun 的日志工具库，提供多级别日志、格式化、轮转等功能
+> 一个兼容 Deno 和 Bun 的日志工具包，提供多级别日志、格式化、轮转等功能
 
-[English](./README.md) | 中文 (Chinese)
+[English](../../README.md) | 中文 (Chinese)
 
 [![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
-[![Tests: 85 passed](https://img.shields.io/badge/Tests-85%20passed-brightgreen)](./TEST_REPORT.md)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
+[![Tests: 86 passed](https://img.shields.io/badge/Tests-86%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
 
 ## 🎯 功能
 
-日志工具库，提供完整的服务端日志管理功能，支持多级别日志、格式化、轮转、过滤等高级功能，用于应用日志记录、调试和监控。
+日志工具包，提供完整的服务端日志管理功能，支持多级别日志、格式化、轮转、过滤等高级功能，用于应用日志记录、调试和监控。
 
 ---
 
@@ -38,7 +38,7 @@ bunx jsr add @dreamer/logger
 import { createLogger } from "jsr:@dreamer/logger/client";
 ```
 
-详细使用说明请查看 [客户端文档](./src/client/README.md)
+详细使用说明请查看 [客户端文档](./client/README.md)
 
 ---
 
@@ -49,7 +49,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
 | **Deno**   | 2.5.0+     | ✅ 完全支持                                                                                 |
 | **Bun**    | 1.3.0+     | ✅ 完全支持                                                                                 |
 | **服务端** | -          | ✅ 支持（兼容 Deno 和 Bun 运行时，自动检测 TTY 环境，后台运行时自动禁用颜色，支持文件输出） |
-| **浏览器** | 现代浏览器 | ✅ 支持（客户端日志模块，详见 [客户端文档](./src/client/README.md)）                        |
+| **浏览器** | 现代浏览器 | ✅ 支持（客户端日志模块，详见 [客户端文档](./client/README.md)）                            |
 
 **依赖**：无外部依赖（纯 TypeScript 实现）
 
@@ -109,7 +109,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
 - **日志收集和分析**：结构化日志适合 ELK、Loki 等日志系统
 - **后台服务日志**：自动禁用颜色，适合文件输出和容器环境
 - **客户端日志**：浏览器环境的日志记录和调试（详见
-  [客户端文档](./src/client/README.md)）
+  [客户端文档](./client/README.md)）
 
 ---
 
@@ -198,13 +198,13 @@ logger.fatal("致命错误");
 
 ## 📊 测试报告
 
-本库经过全面测试，所有 66 个测试用例均已通过，测试覆盖率达到
+本包经过全面测试，所有 86 个测试用例均已通过，测试覆盖率达到
 100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
 
 **测试统计**：
 
-- **总测试数**: 66
-- **通过**: 66 ✅
+- **总测试数**: 86
+- **通过**: 86 ✅
 - **失败**: 0
 - **通过率**: 100% ✅
 - **测试执行时间**: ~22 秒（Deno 环境）
@@ -213,8 +213,8 @@ logger.fatal("致命错误");
 
 **测试类型**：
 
-- ✅ 服务端单元测试（mod.test.ts，46 个）
-- ✅ 浏览器测试（client.test.ts，20 个，使用 @dreamer/test 浏览器测试集成）
+- ✅ 服务端单元测试（mod.test.ts，65 个）
+- ✅ 浏览器测试（client.test.ts，21 个，使用 @dreamer/test 浏览器测试集成）
 
 **测试亮点**：
 
@@ -224,7 +224,8 @@ logger.fatal("致命错误");
   restoreConsole）
 - ✅ 集成测试验证端到端完整流程
 
-查看完整测试报告：[TEST_REPORT.md](./TEST_REPORT.md)
+**v1.0.1** (2026-02-19) — 变更：文档结构调整至 docs；浏览器测试 browserMode:
+false；中文测试报告按规范重写。查看完整测试报告：[TEST_REPORT.md](./TEST_REPORT.md)。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 
@@ -682,7 +683,7 @@ const sameManager = LoggerManager.fromContainer(container, "main");
 ## 📝 注意事项
 
 - **服务端和客户端支持**：服务端提供完整的日志管理功能，客户端提供轻量级日志模块（详见
-  [客户端文档](./src/client/README.md)）
+  [客户端文档](./client/README.md)）
 - **统一接口**：服务端和客户端提供统一的日志 API 接口，降低学习成本
 - **自动检测环境**：服务端自动检测 TTY 环境，后台运行时自动禁用颜色
 - **类型安全**：完整的 TypeScript 类型支持
@@ -700,7 +701,7 @@ const sameManager = LoggerManager.fromContainer(container, "main");
 
 ## 📄 许可证
 
-MIT License - 详见 [LICENSE.md](./LICENSE.md)
+Apache License 2.0 - 详见 [LICENSE](../../LICENSE)
 
 ---
 

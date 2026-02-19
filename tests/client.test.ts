@@ -7,21 +7,29 @@
  */
 
 import { RUNTIME } from "@dreamer/runtime-adapter";
-import { afterAll, beforeAll, describe, expect, it } from "@dreamer/test";
+import {
+  afterAll,
+  beforeAll,
+  cleanupAllBrowsers,
+  describe,
+  expect,
+  it,
+} from "@dreamer/test";
 
 // 浏览器测试配置：由 @dreamer/test 自动打包 client 并启动浏览器
+// browserMode: false 使打包为 IIFE，bundler 会自动将导出挂到 window.LoggerClient；若为 true（ESM）则需入口自行挂载
 const browserConfig = {
   sanitizeOps: false,
   sanitizeResources: false,
   timeout: 60_000,
   browser: {
     enabled: true,
+    browserSource: "test" as const,
     entryPoint: "./src/client/mod.ts",
     globalName: "LoggerClient",
-    browserMode: true,
+    browserMode: false,
     moduleLoadTimeout: 30_000,
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
     reuseBrowser: true,
   },
 };
@@ -31,8 +39,8 @@ describe(`Logger Client - 浏览器测试 (${RUNTIME})`, () => {
     // 可选：统一前置逻辑，当前无服务器等需启动
   });
 
-  afterAll(() => {
-    // 可选：统一后置清理
+  afterAll(async () => {
+    await cleanupAllBrowsers();
   });
 
   describe("基础功能", () => {

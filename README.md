@@ -1,18 +1,21 @@
 # @dreamer/logger
 
-> A Deno and Bun compatible logging library with multi-level logs, formatting, rotation, and more.
+> A Deno and Bun compatible logging library with multi-level logs, formatting,
+> rotation, and more.
 
-English | [中文 (Chinese)](./README-zh.md)
+English | [中文 (Chinese)](./docs/zh-CN/README.md)
 
 [![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.md)
-[![Tests: 85 passed](https://img.shields.io/badge/Tests-85%20passed-brightgreen)](./TEST_REPORT.md)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![Tests: 86 passed](https://img.shields.io/badge/Tests-86%20passed-brightgreen)](./docs/en-US/TEST_REPORT.md)
 
 ---
 
 ## 🎯 Features
 
-A logging library with full server-side log management: multi-level logs, formatting, rotation, filtering, and more for application logging, debugging, and monitoring.
+A logging library with full server-side log management: multi-level logs,
+formatting, rotation, filtering, and more for application logging, debugging,
+and monitoring.
 
 ---
 
@@ -38,18 +41,18 @@ Use the client logger in the browser:
 import { createLogger } from "jsr:@dreamer/logger/client";
 ```
 
-See [Client Documentation](./src/client/README.md) for details.
+See [Client Documentation](./docs/en-US/client/README.md) for details.
 
 ---
 
 ## 🌍 Compatibility
 
-| Environment | Version | Status |
-| ----------- | ------- | ------ |
-| **Deno** | 2.5.0+ | ✅ Fully supported |
-| **Bun** | 1.3.0+ | ✅ Fully supported |
-| **Server** | - | ✅ Supported (Deno/Bun, TTY detection, auto-disable colors in background, file output) |
-| **Browser** | Modern browsers | ✅ Supported (client module, see [Client Documentation](./src/client/README.md)) |
+| Environment | Version         | Status                                                                                  |
+| ----------- | --------------- | --------------------------------------------------------------------------------------- |
+| **Deno**    | 2.5.0+          | ✅ Fully supported                                                                      |
+| **Bun**     | 1.3.0+          | ✅ Fully supported                                                                      |
+| **Server**  | -               | ✅ Supported (Deno/Bun, TTY detection, auto-disable colors in background, file output)  |
+| **Browser** | Modern browsers | ✅ Supported (client module, see [Client Documentation](./docs/en-US/client/README.md)) |
 
 **Dependencies**: None (pure TypeScript)
 
@@ -57,15 +60,22 @@ See [Client Documentation](./src/client/README.md) for details.
 
 ## ✨ Highlights
 
-- **Multi-level logs**: debug, info, warn, error, fatal with dynamic level control
-- **Formats**: JSON (structured), text (human-readable), color (console only, env-aware)
+- **Multi-level logs**: debug, info, warn, error, fatal with dynamic level
+  control
+- **Formats**: JSON (structured), text (human-readable), color (console only,
+  env-aware)
 - **Timestamp & level labels**: Configurable via `showTime` and `showLevel`
-- **Smart color control**: TTY detection, auto-disable in background, no color in file output, NO_COLOR env support
-- **Output**: Console, file, multi-target, **auto mode** (TTY → console only, no TTY → file only), custom (Stream, HTTP)
+- **Smart color control**: TTY detection, auto-disable in background, no color
+  in file output, NO_COLOR env support
+- **Output**: Console, file, multi-target, **auto mode** (TTY → console only, no
+  TTY → file only), custom (Stream, HTTP)
 - **Log management**: Rotation (size/time), filtering (level/tags), compression
-- **Advanced**: Performance monitoring, context (request ID, user ID), structured logs, sampling
-- **Client**: Browser-specific module, colored output via console CSS, debug mode, lightweight
-- **Service container**: `@dreamer/service` DI, LoggerManager, `createLoggerManager` factory
+- **Advanced**: Performance monitoring, context (request ID, user ID),
+  structured logs, sampling
+- **Client**: Browser-specific module, colored output via console CSS, debug
+  mode, lightweight
+- **Service container**: `@dreamer/service` DI, LoggerManager,
+  `createLoggerManager` factory
 
 ---
 
@@ -76,7 +86,8 @@ See [Client Documentation](./src/client/README.md) for details.
 - Performance monitoring and analysis
 - Log aggregation (ELK, Loki, etc.)
 - Background service logs (auto-disable colors, file output)
-- Client-side logging (see [Client Documentation](./src/client/README.md))
+- Client-side logging (see
+  [Client Documentation](./docs/en-US/client/README.md))
 
 ---
 
@@ -151,13 +162,18 @@ logger.fatal("Fatal");
 
 ## 📊 Test Report
 
-All 85 tests pass (100% pass rate). See [TEST_REPORT.md](./TEST_REPORT.md).
+All 86 tests pass (100% pass rate). See
+[TEST_REPORT.md](./docs/en-US/TEST_REPORT.md).
 
-- **Total**: 85 ✅
+- **Total**: 86 ✅
 - **Failed**: 0
 - **Execution time**: ~22s (Deno)
 - **Coverage**: All public APIs, edge cases, error handling
 - **Types**: Server unit tests (mod.test.ts), browser tests (client.test.ts)
+
+**v1.0.1** (2026-02-19) — Changed: docs reorganized to docs/en-US & docs/zh-CN;
+browser test browserMode: false; zh-CN TEST_REPORT rewritten.
+[Changelog](./docs/en-US/CHANGELOG.md)
 
 ---
 
@@ -165,23 +181,23 @@ All 85 tests pass (100% pass rate). See [TEST_REPORT.md](./TEST_REPORT.md).
 
 ### Logger Methods
 
-| Method | Description |
-| ------ | ----------- |
-| `debug(message, data?, error?)` | Debug log |
-| `info(message, data?, error?)` | Info log |
-| `warn(message, data?, error?)` | Warn log |
-| `error(message, data?, error?)` | Error log |
-| `fatal(message, data?, error?)` | Fatal log |
-| `setLevel(level)` / `getLevel()` | Level control |
-| `setContext(context)` / `getContext()` | Context |
-| `addTag(tag)` / `removeTag(tag)` | Tags |
-| `setFilter(filter)` / `getFilter()` | Filter config |
-| `setSampling(sampling)` / `getSampling()` | Sampling config |
-| `startPerformance(operation, data?)` | Start performance monitoring |
-| `endPerformance(id, level?)` | End performance monitoring |
-| `performance(operation, level?)` | Performance decorator |
-| `child(config)` | Create child logger |
-| `close()` | Close logger |
+| Method                                    | Description                  |
+| ----------------------------------------- | ---------------------------- |
+| `debug(message, data?, error?)`           | Debug log                    |
+| `info(message, data?, error?)`            | Info log                     |
+| `warn(message, data?, error?)`            | Warn log                     |
+| `error(message, data?, error?)`           | Error log                    |
+| `fatal(message, data?, error?)`           | Fatal log                    |
+| `setLevel(level)` / `getLevel()`          | Level control                |
+| `setContext(context)` / `getContext()`    | Context                      |
+| `addTag(tag)` / `removeTag(tag)`          | Tags                         |
+| `setFilter(filter)` / `getFilter()`       | Filter config                |
+| `setSampling(sampling)` / `getSampling()` | Sampling config              |
+| `startPerformance(operation, data?)`      | Start performance monitoring |
+| `endPerformance(id, level?)`              | End performance monitoring   |
+| `performance(operation, level?)`          | Performance decorator        |
+| `child(config)`                           | Create child logger          |
+| `close()`                                 | Close logger                 |
 
 ### Types
 
@@ -220,7 +236,8 @@ interface LoggerConfig {
 
 - **Path validation**: Rejects `..` in file paths to prevent path traversal
 - **Message length**: `maxMessageLength` limits log message size (default 32KB)
-- **Safe serialization**: Circular refs and non-serializable values output as `[Unserializable]`
+- **Safe serialization**: Circular refs and non-serializable values output as
+  `[Unserializable]`
 
 ---
 
@@ -332,10 +349,10 @@ const logger = createLogger({
 
 ### Auto Mode (`output.auto: true`)
 
-| Run mode | TTY | Output |
-| -------- | --- | ------ |
-| Direct, interactive | Yes | Console only |
-| nohup, systemd, daemon, pipe | No | File only |
+| Run mode                     | TTY | Output       |
+| ---------------------------- | --- | ------------ |
+| Direct, interactive          | Yes | Console only |
+| nohup, systemd, daemon, pipe | No  | File only    |
 
 ---
 
@@ -362,23 +379,24 @@ const same = LoggerManager.fromContainer(container, "main");
 
 ### LoggerManager Methods
 
-| Method | Description |
-| ------ | ----------- |
-| `getName()` | Get manager name |
-| `setContainer(container)` / `getContainer()` | Service container |
-| `static fromContainer(container, name?)` | Get from container |
-| `getLogger(name, config?)` | Get or create (cached) |
-| `createLogger(config?)` | Create non-cached logger |
-| `hasLogger(name)` / `removeLogger(name)` | Check / remove |
-| `getLoggerNames()` | List all loggers |
-| `setLevel(level)` | Set level for all |
-| `close()` | Close all |
+| Method                                       | Description              |
+| -------------------------------------------- | ------------------------ |
+| `getName()`                                  | Get manager name         |
+| `setContainer(container)` / `getContainer()` | Service container        |
+| `static fromContainer(container, name?)`     | Get from container       |
+| `getLogger(name, config?)`                   | Get or create (cached)   |
+| `createLogger(config?)`                      | Create non-cached logger |
+| `hasLogger(name)` / `removeLogger(name)`     | Check / remove           |
+| `getLoggerNames()`                           | List all loggers         |
+| `setLevel(level)`                            | Set level for all        |
+| `close()`                                    | Close all                |
 
 ---
 
 ## 📝 Notes
 
-- Server: full log management; client: lightweight module (see [Client Documentation](./src/client/README.md))
+- Server: full log management; client: lightweight module (see
+  [Client Documentation](./docs/en-US/client/README.md))
 - Unified API for server and client
 - TTY detection, auto-disable colors in background
 - Full TypeScript types, no external dependencies
@@ -394,7 +412,7 @@ Issues and Pull Requests welcome!
 
 ## 📄 License
 
-MIT License - see [LICENSE.md](./LICENSE.md)
+Apache License 2.0 - see [LICENSE](./LICENSE)
 
 ---
 
