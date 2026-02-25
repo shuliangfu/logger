@@ -19,6 +19,8 @@
   `"auto"`，行为与原先的 `output.auto` 一致（有 TTY 仅控制台，无 TTY 仅文件）。
 - **测试**：新增 `color: "auto"`、`output.console: "auto"` 用例；总用例数
   89（client 21，mod 68）。
+- **CI**：GitHub Actions 工作流（Linux/macOS/Windows，Deno + Bun）；Windows 上
+  Bun 仅跑服务端测试（不跑浏览器），避免 Playwright 已知卡住问题。
 
 ### 变更
 

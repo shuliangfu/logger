@@ -6,7 +6,7 @@
 
 [![JSR](https://jsr.io/badges/@dreamer/logger)](https://jsr.io/@dreamer/logger)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
-[![Tests: 86 passed](https://img.shields.io/badge/Tests-86%20passed-brightgreen)](./TEST_REPORT.md)
+[![Tests: 89 passed](https://img.shields.io/badge/Tests-89%20passed-brightgreen)](./TEST_REPORT.md)
 
 ---
 
@@ -198,13 +198,13 @@ logger.fatal("致命错误");
 
 ## 📊 测试报告
 
-本包经过全面测试，所有 86 个测试用例均已通过，测试覆盖率达到
+本包经过全面测试，所有 89 个测试用例均已通过，测试覆盖率达到
 100%。详细测试报告请查看 [TEST_REPORT.md](./TEST_REPORT.md)。
 
 **测试统计**：
 
-- **总测试数**: 86
-- **通过**: 86 ✅
+- **总测试数**: 89
+- **通过**: 89 ✅
 - **失败**: 0
 - **通过率**: 100% ✅
 - **测试执行时间**: ~22 秒（Deno 环境）
@@ -224,8 +224,8 @@ logger.fatal("致命错误");
   restoreConsole）
 - ✅ 集成测试验证端到端完整流程
 
-**v1.0.2** (2026-02-20) — 变更：将 @dreamer/test 升级为
-^1.0.12。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
+**v1.0.3** (2026-02-25) — 新增：`color: "auto"`、`output.console: "auto"`、CI
+工作流；移除：`output.auto`。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 

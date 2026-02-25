@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   only).
 - **Tests**: Added cases for `color: "auto"` and `output.console: "auto"`; total
   tests 89 (client 21, mod 68).
+- **CI**: GitHub Actions workflow (Linux/macOS/Windows, Deno + Bun); Bun on
+  Windows runs only server tests (no browser) due to known Playwright hang.
 
 ### Changed
 
