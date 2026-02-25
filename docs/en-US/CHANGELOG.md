@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.3] - 2026-02-25
+
+### Added
+
+- **`color: "auto"`**: `LoggerConfig.color` now accepts `"auto"`. When set or
+  undefined, color is auto-detected by TTY and format (foreground with color,
+  background no color).
+- **`output.console: "auto"`**: `LogOutputConfig.console` now accepts `"auto"`.
+  Same behavior as the former `output.auto` (TTY → console only, no TTY → file
+  only).
+- **Tests**: Added cases for `color: "auto"` and `output.console: "auto"`; total
+  tests 89 (client 21, mod 68).
+
+### Changed
+
+- **Removed `output.auto`**: The `output.auto` parameter has been removed. Use
+  `output.console: "auto"` instead for auto output target selection.
+- **Docs**: README and TEST_REPORT updated to document the new `"auto"` values
+  and config change summary (en-US and zh-CN).
+
+---
+
 ## [1.0.2] - 2026-02-20
 
 ### Changed

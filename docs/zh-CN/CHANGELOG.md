@@ -9,6 +9,26 @@
 
 ---
 
+## [1.0.3] - 2026-02-25
+
+### 新增
+
+- **`color: "auto"`**：`LoggerConfig.color` 现支持 `"auto"`。设为或未设置时按
+  TTY 与 format 自动检测（前台有颜色，后台无颜色）。
+- **`output.console: "auto"`**：`LogOutputConfig.console` 现支持
+  `"auto"`，行为与原先的 `output.auto` 一致（有 TTY 仅控制台，无 TTY 仅文件）。
+- **测试**：新增 `color: "auto"`、`output.console: "auto"` 用例；总用例数
+  89（client 21，mod 68）。
+
+### 变更
+
+- **去掉 `output.auto`**：已移除 `output.auto` 参数，请改用
+  `output.console: "auto"` 实现自动输出目标选择。
+- **文档**：README 与 TEST_REPORT 已更新，说明新的 `"auto"`
+  取值及配置变更总结（中英文）。
+
+---
+
 ## [1.0.2] - 2026-02-20
 
 ### 变更

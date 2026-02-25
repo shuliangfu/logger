@@ -74,20 +74,18 @@ export type RotateStrategy = "size" | "time" | "size-time";
  *
  * 输出方式说明：
  * - 手动：显式设置 console / file，按配置输出
- * - 自动（output.auto = true）：根据运行环境自动选择
+ * - 自动（output.console = "auto"）：根据运行环境自动选择
  *   - 前台（有 TTY，如直接执行、交互终端）→ 仅控制台
  *   - 后台（无 TTY，如 nohup、systemd、daemon）→ 仅文件，路径用 file.path 或默认 ./logs/app.log
  */
 export interface LogOutputConfig {
   /**
-   * 是否根据运行环境自动选择输出目标
-   * - true：有 TTY 时只打控制台，无 TTY 时只写文件（路径用下面的 file，未配置时用 ./logs/app.log）
-   * - 未设置或 false：按 console / file 配置，不自动切换
+   * 控制台输出
+   * - true/false：是否输出到控制台
+   * - "auto"：根据是否 TTY 自动选择（前台打控制台，后台写文件，路径用下面的 file，未配置时用 ./logs/app.log）
    */
-  auto?: boolean;
-  /** 控制台输出（手动模式有效；auto 模式下由 isTTY 决定） */
-  console?: boolean;
-  /** 文件输出配置（手动模式直接使用；auto 且无 TTY 时使用，未配置时默认 path: "./logs/app.log"） */
+  console?: boolean | "auto";
+  /** 文件输出配置（console 非 "auto" 时按配置使用；console 为 "auto" 且无 TTY 时使用，未配置时默认 path: "./logs/app.log"） */
   file?: {
     /** 文件路径 */
     path: string;
@@ -140,8 +138,12 @@ export interface LoggerConfig {
   format?: LogFormat;
   /** 输出配置 */
   output?: LogOutputConfig;
-  /** 是否启用颜色（默认自动检测） */
-  color?: boolean;
+  /**
+   * 是否启用颜色
+   * - true/false：明确开启或关闭
+   * - "auto" 或未设置：按 TTY 与 format 自动检测（前台 + format color 时有颜色，后台无颜色）
+   */
+  color?: boolean | "auto";
   /** 是否显示时间戳（默认：TTY/控制台运行时不显示，后台运行时显示） */
   showTime?: boolean;
   /** 是否显示日志级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签） */
@@ -233,9 +235,10 @@ function shouldUseColor(
     return false;
   }
 
-  // 如果明确指定了 color，使用指定值
-  if (config.color !== undefined) {
-    return config.color;
+  // 明确指定 true/false 时使用；"auto" 或未设置时走自动检测
+  const colorOpt = config.color;
+  if (colorOpt === true || colorOpt === false) {
+    return colorOpt;
   }
 
   // 检查 NO_COLOR 环境变量
@@ -412,39 +415,40 @@ interface PerformanceData {
 const DEFAULT_AUTO_FILE_PATH = "./logs/app.log";
 
 /**
- * 根据 output.auto 与是否 TTY 解析最终输出配置
- * - auto 且 有 TTY（前台）→ 仅控制台
- * - auto 且 无 TTY（后台）→ 仅文件，路径用 file.path 或默认 ./logs/app.log
- * - 未开 auto → 原样使用 console / file 配置
+ * 根据 output.console === "auto" 与是否 TTY 解析最终输出配置
+ * - console 为 "auto"：有 TTY（前台）→ 仅控制台，无 TTY（后台）→ 仅文件
+ * - console 非 "auto" → 原样使用 console / file 配置
  *
- * @param output - 用户传入的 output 配置
- * @returns 解析后的输出配置（Logger 内部使用）
+ * @param output - 用户传入的 output 配置（console 可为 "auto"）
+ * @returns 解析后的输出配置（Logger 内部使用，含 auto 等内部字段）
  */
 function resolveOutputConfig(output: LogOutputConfig): LogOutputConfig {
-  if (output.auto !== true) {
+  const c = (output as { console?: boolean | "auto" }).console;
+  const useAuto = c === "auto";
+  if (!useAuto) {
     return {
       ...output,
-      console: output.console ?? true,
+      console: c === true || c === false ? c : true,
     };
   }
-
+  const normalized = { ...output };
+  if ((normalized as Record<string, unknown>).console === "auto") {
+    delete (normalized as Record<string, unknown>).console;
+  }
   const tty = isTTY();
   if (tty) {
     return {
-      auto: true,
+      ...normalized,
       console: true,
       file: undefined,
-      custom: output.custom,
-    };
+    } as LogOutputConfig;
   }
-
-  const fileConfig = output.file ?? { path: DEFAULT_AUTO_FILE_PATH };
+  const fileConfig = normalized.file ?? { path: DEFAULT_AUTO_FILE_PATH };
   return {
-    auto: true,
+    ...normalized,
     console: false,
     file: fileConfig,
-    custom: output.custom,
-  };
+  } as LogOutputConfig;
 }
 
 /**
@@ -480,12 +484,16 @@ export class Logger {
   constructor(config: LoggerConfig = {}) {
     const rawOutput = config.output || { console: true };
     const resolvedOutput = resolveOutputConfig(rawOutput);
+    const configForColor: LoggerConfig = {
+      ...config,
+      color: config.color === "auto" ? undefined : config.color,
+    };
 
     this.config = {
       level: config.level || "info",
       format: config.format || "text",
       output: resolvedOutput,
-      color: config.color ?? (config.format === "color" && isTTY()),
+      color: shouldUseColor(configForColor, false),
       // 控制台运行（TTY）默认不显示时间，后台运行默认显示时间（方便日志追踪）
       showTime: config.showTime ?? !isTTY(),
       showLevel: config.showLevel ?? true,

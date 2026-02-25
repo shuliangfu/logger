@@ -11,26 +11,34 @@ English | [中文 (Chinese)](../zh-CN/TEST_REPORT.md)
 | **Test Framework**            | `@dreamer/test@^1.0.10`   |
 | **Test Environment**          | Deno 2.5+, Bun 1.0+       |
 | **Test Files**                | 2                         |
-| **Total Test Cases**          | 86                        |
+| **Test Date**                 | 2026-02-25                |
+| **Total Test Cases**          | 89                        |
 | **Pass Rate**                 | 100% ✅                   |
-| **Execution Time**            | ~22s                      |
+| **Execution Time**            | ~4s                       |
+
+### Config change summary (matches this test run)
+
+- **Removed** `output.auto`; use **`output.console: "auto"`** for auto mode (TTY
+  → console, no TTY → file).
+- **`color`** supports **`"auto"`** (auto-detect by TTY and format).
+- **`output.console`** supports **`"auto"`** for the same auto output behavior.
 
 ## Test Results
 
 ### Overall Statistics
 
-- **Total Tests**: 86
-- **Passed**: 86 ✅
+- **Total Tests**: 89
+- **Passed**: 89 ✅
 - **Failed**: 0
 - **Pass Rate**: 100% ✅
-- **Execution Time**: ~22 seconds (Deno, `deno test -A`)
+- **Execution Time**: ~4 seconds (Deno, `deno test -A`)
 
 ### Test File Statistics
 
 | Test File        | Tests | Status      | Description                                                      |
 | ---------------- | ----- | ----------- | ---------------------------------------------------------------- |
 | `client.test.ts` | 21    | ✅ All Pass | Browser tests (@dreamer/test browser integration)                |
-| `mod.test.ts`    | 65    | ✅ All Pass | Server-side tests + LoggerManager + ServiceContainer integration |
+| `mod.test.ts`    | 68    | ✅ All Pass | Server-side tests + LoggerManager + ServiceContainer integration |
 
 ## Functional Test Details
 
@@ -72,20 +80,25 @@ bundle). Auto-manages Playwright and esbuild bundling. Bun/Deno compatible.
 
 **Result**: All 21 tests passed
 
-### 2. Server-Side Tests (mod.test.ts) - 65 tests
+### 2. Server-Side Tests (mod.test.ts) - 68 tests
 
-Same as previously documented (createLogger, log levels, formats, timestamp,
-context/tags, child logger, performance, filter/sampling, output, file, console
-redirection, LoggerManager, ServiceContainer, createLoggerManager).
+Same as previously documented (createLogger, log levels, formats, timestamp
+including **color: "auto"** and **output.console: "auto"**, context/tags, child
+logger, performance, filter/sampling, output, file, console redirection,
+LoggerManager, ServiceContainer, createLoggerManager).
 
-**Result**: All 65 tests passed
+**Result**: All 68 tests passed
 
 ## Conclusion
 
-@dreamer/logger is fully tested with all 86 tests passing (100% pass rate).
+@dreamer/logger is fully tested with all 89 tests passing (100% pass rate).
 
 - **Browser tests (client.test.ts)**: 21 ✅
-- **Server-side tests (mod.test.ts)**: 65 ✅
+- **Server-side tests (mod.test.ts)**: 68 ✅
+
+**Config**: This version removes `output.auto`; use `output.console: "auto"` for
+auto output. Both `color` and `output.console` support the `"auto"` value. See
+"Config change summary" above.
 
 **Ready for production use.**
 

@@ -65,10 +65,11 @@ See [Client Documentation](./docs/en-US/client/README.md) for details.
 - **Formats**: JSON (structured), text (human-readable), color (console only,
   env-aware)
 - **Timestamp & level labels**: Configurable via `showTime` and `showLevel`
-- **Smart color control**: TTY detection, auto-disable in background, no color
-  in file output, NO_COLOR env support
-- **Output**: Console, file, multi-target, **auto mode** (TTY → console only, no
-  TTY → file only), custom (Stream, HTTP)
+- **Smart color control**: `color: true | false | "auto"` (auto = TTY + format
+  detection), no color in file output, NO_COLOR env support
+- **Output**: Console, file, multi-target, **auto mode**
+  (`output.console: "auto"` → TTY: console only, no TTY: file only), custom
+  (Stream, HTTP)
 - **Log management**: Rotation (size/time), filtering (level/tags), compression
 - **Advanced**: Performance monitoring, context (request ID, user ID),
   structured logs, sampling
@@ -128,12 +129,12 @@ const multiLogger = createLogger({
   },
 });
 
-// Auto mode (recommended for background services)
+// Auto mode (recommended for background services): use console: "auto"
 const autoLogger = createLogger({
   level: "info",
   format: "text",
   output: {
-    auto: true,
+    console: "auto",
     file: { path: "./logs/app.log" },
   },
 });
@@ -346,7 +347,10 @@ const logger = createLogger({
 - File only: `output: { console: false, file: { path: "./logs/app.log" } }`
 - Both: `output: { console: true, file: { path: "./logs/app.log" } }`
 
-### Auto Mode (`output.auto: true`)
+### Auto Mode (`output.console: "auto"`)
+
+The `output.auto` parameter has been removed; use `output.console: "auto"` for
+the same behavior.
 
 | Run mode                     | TTY | Output       |
 | ---------------------------- | --- | ------------ |

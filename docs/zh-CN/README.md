@@ -76,7 +76,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - 控制台输出（支持彩色，自动检测环境）
   - 文件输出（纯文本，无颜色）
   - 多目标输出（同时输出到控制台和文件）
-  - **自动模式（output.auto）**：前台（有 TTY）只打控制台，后台（无
+  - **自动模式（output.console: "auto"）**：前台（有 TTY）只打控制台，后台（无
     TTY）只写文件，无需改配置
   - 自定义输出目标（Stream、HTTP 等）
 - **日志管理**：
@@ -167,7 +167,7 @@ const autoLogger = createLogger({
   level: "info",
   format: "text",
   output: {
-    auto: true,
+    console: "auto", // 替代原 output.auto：有 TTY 打控制台，无 TTY 写文件
     file: { path: "./logs/app.log" }, // 后台时的文件路径，不写则用默认 ./logs/app.log
   },
 });
@@ -361,7 +361,8 @@ interface LoggerConfig {
   level?: LogLevel;
   format?: LogFormat;
   output?: LogOutputConfig;
-  color?: boolean;
+  /** true/false 明确开关；"auto" 或未设置时按 TTY 与 format 自动检测（前台有颜色，后台无颜色） */
+  color?: boolean | "auto";
   showTime?: boolean; // 是否显示时间戳（默认 true）
   showLevel?: boolean; // 是否显示级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签）
   tags?: string[];
@@ -602,7 +603,9 @@ const logger2 = createLogger({
 
 ### 自动模式（根据运行环境切换）
 
-设置 `output.auto: true` 后，会根据**是否有 TTY** 自动选择输出目标，无需改配置：
+设置 `output.console: "auto"` 后，会根据**是否有 TTY**
+自动选择输出目标，无需改配置（已去掉 `output.auto` 参数，统一用
+`console: "auto"`）：
 
 | 运行方式                       | 是否有 TTY | 实际输出           |
 | ------------------------------ | ---------- | ------------------ |
@@ -620,7 +623,7 @@ const logger = createLogger({
   level: "info",
   format: "text",
   output: {
-    auto: true,
+    console: "auto",
     file: { path: "./logs/app.log" }, // 可选；不写则后台时用默认 ./logs/app.log
   },
 });

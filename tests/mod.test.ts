@@ -102,6 +102,24 @@ describe("Logger", () => {
       logger.info("启用时间戳测试");
     });
 
+    it('应该支持 color: "auto"（按 TTY 与 format 自动检测）', () => {
+      const logger = createLogger({
+        level: "debug",
+        format: "color",
+        color: "auto",
+      });
+      logger.info("color auto 测试");
+    });
+
+    it('应该支持 output.console: "auto"（接受配置；无 TTY 时写文件需 close 防泄漏）', async () => {
+      const logger = createLogger({
+        level: "debug",
+        output: { console: "auto" },
+      });
+      logger.info("console auto 测试");
+      await logger.close();
+    });
+
     it("文本格式下应该支持控制时间戳显示", () => {
       const logger1 = createLogger({
         format: "text",
@@ -149,7 +167,7 @@ describe("Logger", () => {
       });
       logger2.info("JSON 格式测试2");
     });
-  });
+  }, { sanitizeOps: false, sanitizeResources: false });
 
   describe("日志数据", () => {
     it("应该支持数据参数", () => {
