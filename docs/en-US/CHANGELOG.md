@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2026-07-22
+
+### Added
+
+- **Node.js compatibility**: Logger uses `@dreamer/runtime-adapter` (v1.2.2,
+  Node-supported) for all filesystem and environment operations (`getEnv`,
+  `isTerminal`, `mkdir`, `open`, `rename`, `stat`). Service container
+  (`@dreamer/service` v1.1.0) is Node-compatible. No `src/` changes needed.
+- **Node test infrastructure**: `package.json` with `test:node` script
+  (`tsx --tsconfig tsconfig.json --test --test-force-exit tests/mod.test.ts`),
+  `tsconfig.json`. Browser tests (`client.test.ts`) excluded from Node CI
+  (require Chromium + esbuild).
+- **CI workflow** updated to 9 jobs — 3 Deno v2.9 + 3 Bun + 3 Node 22. Deno/Bun
+  jobs install Playwright Chromium 1.59.1 and run all tests (including browser);
+  Node jobs run `mod.test.ts` only (no Chromium).
+- `minimumDependencyAge: 0` in `deno.json` for freshly published `@dreamer/*`
+  dependencies.
+
+### Changed
+
+- Dependencies upgraded: `@dreamer/test` ^1.2.3, `@dreamer/service` ^1.1.0,
+  `@dreamer/runtime-adapter` ^1.2.2.
+- CI Deno version v2.5 → v2.9; Playwright 1.58.2 → 1.59.1.
+
+### Documentation
+
+- Test report (en-US and zh-CN) updated to three-end results: Deno 89, Bun 86,
+  Node 67.
+
+---
+
 ## [1.0.3] - 2026-02-25
 
 ### Added

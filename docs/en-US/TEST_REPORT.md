@@ -4,34 +4,38 @@ English | [中文 (Chinese)](../zh-CN/TEST_REPORT.md)
 
 ## 📊 Test Overview
 
-| Item                          | Value                     |
-| ----------------------------- | ------------------------- |
-| **Logger Version**            | `@dreamer/logger@1.0.0`   |
-| **Service Container Version** | `@dreamer/service@^1.0.2` |
-| **Test Framework**            | `@dreamer/test@^1.0.10`   |
-| **Test Environment**          | Deno 2.5+, Bun 1.0+       |
-| **Test Files**                | 2                         |
-| **Test Date**                 | 2026-02-25                |
-| **Total Test Cases**          | 89                        |
-| **Pass Rate**                 | 100% ✅                   |
-| **Execution Time**            | ~4s                       |
+| Item                          | Value                                 |
+| ----------------------------- | ------------------------------------- |
+| **Logger Version**            | `@dreamer/logger@1.1.0`               |
+| **Service Container Version** | `@dreamer/service@^1.1.0`             |
+| **Test Framework**            | `@dreamer/test@^1.2.3`                |
+| **Test Environment**          | Deno 2.9+, Bun 1.3+, Node.js 22+      |
+| **Test Files**                | 2                                     |
+| **Test Date**                 | 2026-07-22                            |
+| **Total Test Cases**          | 89 (Deno) / 86 (Bun) / 67 (Node)      |
+| **Pass Rate**                 | 100% ✅                               |
+| **Execution Time**            | ~23s (Deno) / ~23s (Bun) / ~1s (Node) |
 
-### Config change summary (matches this test run)
+### Three-end test summary
 
-- **Removed** `output.auto`; use **`output.console: "auto"`** for auto mode (TTY
-  → console, no TTY → file).
-- **`color`** supports **`"auto"`** (auto-detect by TTY and format).
-- **`output.console`** supports **`"auto"`** for the same auto output behavior.
+All tests pass across three runtimes. Deno and Bun run the full suite (including
+browser tests via Playwright); Node runs `mod.test.ts` only (browser tests
+require Chromium + esbuild, excluded from Node CI per project convention).
+
+- **Deno (89 tests)**: 68 server-side (`mod.test.ts`) + 21 browser
+  (`client.test.ts`) via @dreamer/test headless browser integration.
+- **Bun (86 tests)**: 65 server-side + 21 browser.
+- **Node.js 22 (67 tests)**: `mod.test.ts` only via `tsx --test`.
 
 ## Test Results
 
 ### Overall Statistics
 
-- **Total Tests**: 89
-- **Passed**: 89 ✅
+- **Total Tests**: 89 (Deno) / 86 (Bun) / 67 (Node)
+- **Passed**: 89 / 86 / 67 ✅
 - **Failed**: 0
 - **Pass Rate**: 100% ✅
-- **Execution Time**: ~4 seconds (Deno, `deno test -A`)
+- **Execution Time**: ~23s (Deno) / ~23s (Bun) / ~1s (Node)
 
 ### Test File Statistics
 

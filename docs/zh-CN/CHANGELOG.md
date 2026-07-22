@@ -9,6 +9,36 @@
 
 ---
 
+## [1.1.0] - 2026-07-22
+
+### 新增
+
+- **Node.js 兼容**：logger 通过 `@dreamer/runtime-adapter`（v1.2.2，已支持
+  Node）进行所有文件系统与环境操作（`getEnv`、`isTerminal`、`mkdir`、`open`、
+  `rename`、`stat`）。服务容器（`@dreamer/service` v1.1.0）已兼容 Node。无需修改
+  `src/`。
+- **Node 测试基础设施**：`package.json` 含 `test:node` 脚本
+  （`tsx --tsconfig tsconfig.json --test --test-force-exit tests/mod.test.ts`）、
+  `tsconfig.json`。浏览器测试（`client.test.ts`）在 Node CI 中排除（需
+  Chromium + esbuild）。
+- **CI 工作流**升级为 9 个 job — 3 Deno v2.9 + 3 Bun + 3 Node 22。 Deno/Bun job
+  安装 Playwright Chromium 1.59.1 并运行全部测试（含浏览器）； Node job 仅运行
+  `mod.test.ts`（不安装 Chromium）。
+- `deno.json` 添加 `minimumDependencyAge: 0`，以兼容当日发布的 `@dreamer/*`
+  依赖。
+
+### 变更
+
+- 依赖升级：`@dreamer/test` ^1.2.3、`@dreamer/service` ^1.1.0、
+  `@dreamer/runtime-adapter` ^1.2.2。
+- CI Deno 版本 v2.5 → v2.9；Playwright 1.58.2 → 1.59.1。
+
+### 文档
+
+- 中英文测试报告更新为三端结果：Deno 89、Bun 86、Node 67。
+
+---
+
 ## [1.0.3] - 2026-02-25
 
 ### 新增
