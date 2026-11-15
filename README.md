@@ -173,8 +173,9 @@ All 86 tests pass (100% pass rate). See
 - **Coverage**: All public APIs, edge cases, error handling
 - **Types**: Server unit tests (mod.test.ts), browser tests (client.test.ts)
 
-**v1.0.3** (2026-02-25) — Added: `color: "auto"`, `output.console: "auto"`, CI
-workflow; Removed: `output.auto`. [Changelog](./docs/en-US/CHANGELOG.md)
+**v1.1.1** (2026-11-15) — CLI output no longer prints `[INFO]` / `[ERROR]`
+prefixes; file logs still include them. Linux CI pinned to ubuntu-24.04.
+[Changelog](./docs/en-US/CHANGELOG.md)
 
 ---
 

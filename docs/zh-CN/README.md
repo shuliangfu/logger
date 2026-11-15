@@ -224,8 +224,7 @@ logger.fatal("致命错误");
   restoreConsole）
 - ✅ 集成测试验证端到端完整流程
 
-**v1.0.3** (2026-02-25) — 新增：`color: "auto"`、`output.console: "auto"`、CI
-工作流；移除：`output.auto`。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
+**v1.1.1** (2026-11-15) — 命令行不再打印 `[INFO]` / `[ERROR]` 前缀，日志文件仍保留；Linux CI 钉到 ubuntu-24.04。变更日志：[CHANGELOG.md](./CHANGELOG.md)。
 
 ---
 

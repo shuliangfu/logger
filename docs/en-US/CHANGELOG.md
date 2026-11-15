@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [1.1.1] - 2026-11-15
 
 ### Changed
 
@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `[ERROR]`. File logs and custom outputs still include them by default;
   set `showLevel: false` to omit the prefix there as well. When color is
   enabled on the CLI, the message itself is colored by level.
+- CI Linux jobs are pinned to `ubuntu-24.04`, because `ubuntu-latest` is now
+  26.04 and Playwright 1.59.1 cannot install Chromium there.
 
 ## [1.1.0] - 2026-07-22
 
