@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- Command-line output no longer prints level prefixes such as `[INFO]` or
+  `[ERROR]`. File logs and custom outputs still include them by default;
+  set `showLevel: false` to omit the prefix there as well. When color is
+  enabled on the CLI, the message itself is colored by level.
+
 ## [1.1.0] - 2026-07-22
 
 ### Added

@@ -64,7 +64,7 @@ See [Client Documentation](./docs/en-US/client/README.md) for details.
   control
 - **Formats**: JSON (structured), text (human-readable), color (console only,
   env-aware)
-- **Timestamp & level labels**: Configurable via `showTime` and `showLevel`
+- **Timestamp & level labels**: `showTime` controls timestamps; level labels such as `[INFO]` appear in file and custom output (`showLevel`, default true) and are omitted from the command line
 - **Smart color control**: `color: true | false | "auto"` (auto = TTY + format
   detection), no color in file output, NO_COLOR env support
 - **Output**: Console, file, multi-target, **auto mode**
@@ -103,6 +103,7 @@ const logger = createLogger({
   level: "info",
   format: "text", // or "json"
   showTime: true,
+  // showLevel only affects file and custom output; the CLI never prints [INFO]
   showLevel: true,
 });
 
@@ -223,6 +224,7 @@ interface LoggerConfig {
   output?: LogOutputConfig;
   color?: boolean;
   showTime?: boolean;
+  /** File and custom output only; the CLI never prints [INFO], [ERROR], … */
   showLevel?: boolean;
   tags?: string[];
   context?: Record<string, unknown>;
@@ -257,8 +259,9 @@ logger.error("Error");
 ### Timestamp & Level Control
 
 ```typescript
-// showTime: false - no timestamp
-// showLevel: false - no [INFO], [ERROR] labels
+// CLI output never includes [INFO] / [ERROR] labels.
+// showTime: false - no timestamp on the CLI or in custom output
+// showLevel: false - also omit those labels when writing the log file
 const logger = createLogger({
   level: "info",
   format: "text",
@@ -266,6 +269,8 @@ const logger = createLogger({
   showLevel: false,
 });
 logger.info("Message only");
+// CLI: Message only
+// log file (showLevel: false): 2026-01-20T03:20:59.689Z Message only
 ```
 
 ### Performance Monitoring

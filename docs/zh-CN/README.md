@@ -65,7 +65,7 @@ import { createLogger } from "jsr:@dreamer/logger/client";
   - 文本格式（人类可读）
   - 彩色格式（仅控制台输出，自动检测环境）
   - 时间戳控制（可配置是否显示时间戳）
-  - 级别标签控制（可配置是否显示 [info]、[error] 等级别标签）
+  - 级别标签：命令行不打印 [INFO]、[ERROR] 等前缀；写入日志文件和自定义输出时默认保留，可用 `showLevel: false` 关闭
 - **智能颜色控制**：
   - 自动检测运行环境（TTY/非TTY）
   - 后台运行时（非TTY）自动禁用颜色
@@ -124,8 +124,8 @@ import { createLogger, Logger } from "jsr:@dreamer/logger";
 const logger = createLogger({
   level: "info",
   format: "text", // 或 "json"
-  showTime: true, // 是否显示时间戳（默认 true）
-  showLevel: true, // 是否显示级别标签（默认 true）
+  showTime: true, // 是否显示时间戳（控制台默认随是否 TTY 变化）
+  showLevel: true, // 仅影响日志文件和自定义输出；命令行始终不打印 [INFO]
   // 自动检测环境，后台运行时禁用颜色
   // 文件输出时自动禁用颜色
 });
@@ -364,7 +364,7 @@ interface LoggerConfig {
   /** true/false 明确开关；"auto" 或未设置时按 TTY 与 format 自动检测（前台有颜色，后台无颜色） */
   color?: boolean | "auto";
   showTime?: boolean; // 是否显示时间戳（默认 true）
-  showLevel?: boolean; // 是否显示级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签）
+  showLevel?: boolean; // 是否在日志文件和自定义输出中显示级别标签（默认 true）；命令行始终不打印 [INFO]、[ERROR] 等标签
   tags?: string[];
   context?: Record<string, unknown>;
   filter?: LogFilterConfig;
@@ -412,7 +412,7 @@ const logger1 = createLogger({
   format: "text",
 });
 logger1.info("这条日志包含时间戳");
-// 输出: 2026-01-20T03:20:59.689Z [INFO] 这条日志包含时间戳
+// 控制台输出: 2026-01-20T03:20:59.689Z 这条日志包含时间戳
 
 // 禁用时间戳
 const logger2 = createLogger({
@@ -421,40 +421,40 @@ const logger2 = createLogger({
   showTime: false, // 不显示时间戳
 });
 logger2.info("这条日志不包含时间戳");
-// 输出: [INFO] 这条日志不包含时间戳
+// 控制台输出: 这条日志不包含时间戳
 ```
 
-### 示例 1.2：控制级别标签显示
+### 示例 1.2：级别标签只出现在日志文件里
 
 ```typescript
 import { createLogger } from "jsr:@dreamer/logger";
 
-// 默认显示级别标签
+// 命令行始终不打印 [INFO]、[ERROR] 等标签
 const logger1 = createLogger({
   level: "info",
   format: "text",
+  showTime: false,
+  output: {
+    console: true,
+    file: { path: "./logs/app.log" },
+  },
 });
-logger1.info("这条日志包含级别标签");
-// 输出: 2026-01-20T03:20:59.689Z [INFO] 这条日志包含级别标签
+logger1.info("应用启动");
+// 控制台: 应用启动
+// 日志文件: 2026-01-20T03:20:59.689Z [INFO] 应用启动
 
-// 禁用级别标签
+// showLevel: false 只关掉文件和自定义输出里的级别标签
 const logger2 = createLogger({
   level: "info",
   format: "text",
-  showLevel: false, // 不显示级别标签
+  showLevel: false,
+  output: {
+    console: false,
+    file: { path: "./logs/app.log" },
+  },
 });
 logger2.info("这条日志不包含级别标签");
-// 输出: 2026-01-20T03:20:59.689Z 这条日志不包含级别标签
-
-// 同时禁用时间戳和级别标签
-const logger3 = createLogger({
-  level: "info",
-  format: "text",
-  showTime: false,
-  showLevel: false,
-});
-logger3.info("这条日志只显示消息内容");
-// 输出: 这条日志只显示消息内容
+// 日志文件: 2026-01-20T03:20:59.689Z 这条日志不包含级别标签
 ```
 
 ### 示例 2：性能监控

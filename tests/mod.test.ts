@@ -417,6 +417,111 @@ describe("Logger", () => {
     });
   });
 
+  describe("级别标签输出", () => {
+    function captureConsoleLog(run: () => void): string[] {
+      const lines: string[] = [];
+      const g = globalThis as unknown as { console: Console };
+      const originalLog = g.console.log;
+      g.console.log = ((...args: unknown[]) => {
+        lines.push(String(args[0] ?? ""));
+      }) as typeof g.console.log;
+      try {
+        run();
+      } finally {
+        g.console.log = originalLog;
+      }
+      return lines;
+    }
+
+    it("命令行输出不应带 [INFO] 等级别标签", () => {
+      const lines = captureConsoleLog(() => {
+        const logger = createLogger({
+          format: "text",
+          level: "debug",
+          color: false,
+          showTime: false,
+          output: { console: true },
+        });
+        logger.debug("cli-debug");
+        logger.info("cli-info");
+        logger.warn("cli-warn");
+        logger.error("cli-error");
+        logger.fatal("cli-fatal");
+      });
+      expect(lines.some((line) => line.includes("cli-info"))).toBe(true);
+      expect(lines.some((line) => line.includes("cli-warn"))).toBe(true);
+      expect(lines.some((line) => line.includes("cli-error"))).toBe(true);
+      for (const line of lines) {
+        expect(line).not.toMatch(/\[(DEBUG|INFO|WARN|ERROR|FATAL)\]/);
+      }
+    });
+
+    it("日志文件默认仍应带 [INFO] 级别标签", async () => {
+      const testDir = await makeTempDir({ prefix: "logger-level-label-" });
+      const testFile = `${testDir}/app.log`;
+      try {
+        const logger = createLogger({
+          format: "text",
+          level: "info",
+          output: {
+            console: false,
+            file: { path: testFile },
+          },
+        });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        logger.info("file-info-line");
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await logger.close();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const content = await readTextFile(testFile);
+        expect(content).toContain("[INFO]");
+        expect(content).toContain("file-info-line");
+      } finally {
+        try {
+          await remove(testDir, { recursive: true });
+        } catch {
+          // 忽略清理错误
+        }
+      }
+    }, {
+      sanitizeOps: false,
+      sanitizeResources: false,
+    });
+
+    it("showLevel: false 时日志文件也不带级别标签", async () => {
+      const testDir = await makeTempDir({ prefix: "logger-no-level-label-" });
+      const testFile = `${testDir}/app.log`;
+      try {
+        const logger = createLogger({
+          format: "text",
+          level: "info",
+          showLevel: false,
+          output: {
+            console: false,
+            file: { path: testFile },
+          },
+        });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        logger.info("file-no-level");
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        await logger.close();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const content = await readTextFile(testFile);
+        expect(content).not.toMatch(/\[INFO\]/);
+        expect(content).toContain("file-no-level");
+      } finally {
+        try {
+          await remove(testDir, { recursive: true });
+        } catch {
+          // 忽略清理错误
+        }
+      }
+    }, {
+      sanitizeOps: false,
+      sanitizeResources: false,
+    });
+  });
+
   describe("文件输出", () => {
     let testDir: string;
     let testFile: string;

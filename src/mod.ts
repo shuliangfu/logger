@@ -146,7 +146,10 @@ export interface LoggerConfig {
   color?: boolean | "auto";
   /** 是否显示时间戳（默认：TTY/控制台运行时不显示，后台运行时显示） */
   showTime?: boolean;
-  /** 是否显示日志级别标签（默认 true，设置为 false 时不显示 [info]、[error] 等标签） */
+  /**
+   * 是否在日志文件和自定义输出中显示级别标签（默认 true）。
+   * 命令行输出始终不打印 [INFO]、[ERROR] 等标签。
+   */
   showLevel?: boolean;
   /** 日志标签（用于过滤） */
   tags?: string[];
@@ -316,7 +319,7 @@ function getLevelColor(level: LogLevel, useColor: boolean): string {
  * @param entry - 日志条目
  * @param useColor - 是否使用颜色
  * @param showTime - 是否包含时间戳
- * @param showLevel - 是否显示日志级别标签
+ * @param showLevel - 是否显示日志级别标签（命令行固定为 false）
  * @returns 格式化后的日志字符串
  */
 function formatText(
@@ -330,15 +333,20 @@ function formatText(
   const levelColor = getLevelColor(level, useColor);
   const reset = useColor ? ANSI_COLORS.reset : "";
 
-  // 构建级别标签部分
+  // 构建级别标签部分（命令行不使用；文件与自定义输出按 showLevel）
   const levelLabel = showLevel
     ? `[${levelColor}${level.toUpperCase()}${reset}] `
     : "";
 
+  // 命令行去掉级别标签后，有颜色时把颜色加在消息上，级别仍可一眼分辨
+  const body = !showLevel && useColor && levelColor
+    ? `${levelColor}${message}${reset}`
+    : message;
+
   // 根据 showTime 和 showLevel 参数决定输出格式
   let output = showTime
-    ? `${timestamp} ${levelLabel}${message}`
-    : `${levelLabel}${message}`;
+    ? `${timestamp} ${levelLabel}${body}`
+    : `${levelLabel}${body}`;
 
   if (tags && tags.length > 0) {
     output += ` [${tags.join(", ")}]`;
@@ -374,7 +382,7 @@ function formatJSON(entry: LogEntry): string {
  * @param format - 日志格式
  * @param useColor - 是否使用颜色
  * @param showTime - 是否包含时间戳
- * @param showLevel - 是否显示日志级别标签
+ * @param showLevel - 是否显示日志级别标签（命令行固定为 false）
  * @returns 格式化后的日志字符串
  */
 function formatLog(
@@ -719,7 +727,7 @@ export class Logger {
           this.config.format,
           useColor,
           this.config.showTime,
-          this.config.showLevel,
+          false, // 命令行不打印 [INFO] 等级别标签
         );
         getConsoleForOutput().log(message);
       } catch (err) {
