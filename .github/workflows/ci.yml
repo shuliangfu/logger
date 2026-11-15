@@ -1,6 +1,8 @@
 # CI: 在 macOS、Ubuntu、Windows 上运行 Deno / Bun / Node 三端测试，验证跨运行时兼容性
 # logger 含 client.test.ts（依赖 @dreamer/esbuild 打包 + Chromium），
 # 故 Deno/Bun CI 安装 Chromium 跑全部用例；Node CI 仅跑 mod.test.ts（无 Chromium）。
+# Pin Linux to ubuntu-24.04: ubuntu-latest is 26.04; Playwright 1.59.1 has no
+# chromium for ubuntu26.04-x64. Same pin as @dreamer/ui-view, dweb, view, test.
 name: CI
 
 on:
@@ -19,7 +21,7 @@ jobs:
   # Deno 三平台测试（linux 同时负责 check / lint）
   # ─────────────────────────────────────────────────────────────
   test-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -95,7 +97,7 @@ jobs:
   # logger 有运行时依赖（runtime-adapter, service）；bun install 解析 package.json
   # ─────────────────────────────────────────────────────────────
   test-linux-bun:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -170,7 +172,7 @@ jobs:
   #   - Node CI 不安装 Chromium，符合 Node 兼容规范
   # ─────────────────────────────────────────────────────────────
   test-linux-node:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
